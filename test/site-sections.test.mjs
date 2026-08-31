@@ -37,23 +37,19 @@ test('lobi başlangıçta sahte mesaj içermez ve gerçek mesaj kalıcıdır', a
   assert.equal(result.items.length, 1); assert.equal(result.items[0].content, 'Merhaba Bilio!'); assert.equal(result.items[0].username, 'ArayuzTest');
 });
 
-test('mağazanın bütün kategorileri gerçek içerik döndürür', async () => {
+test('mağaza yeni özel ürünler eklenene kadar eski satış ürünlerini göstermez', async () => {
   for (const category of ['EMOJİLER', 'UNVANLAR', 'ÇERÇEVELER', 'ROZETLER', 'HEDİYELER', 'TAKVİYELER']) {
     const [response, result] = await req(`/api/store/products?category=${encodeURIComponent(category)}`);
     assert.equal(response.status, 200);
-    assert.ok(result.items.length >= 6, `${category} en az 6 içerik taşımalı`);
+    assert.deepEqual(result.items, [], `${category} eski satış ürünü taşımamalı`);
   }
 });
 
-test('mağaza gerçek bakiye ile atomik satın alma yapar, tekrarını engeller ve yeniden girişte korur', async () => {
-  let [response, result] = await req('/api/store/purchase', {method: 'POST', body: JSON.stringify({productId: 'emoji-kalp', requestId: 'tek-istek'})});
-  assert.equal(response.status, 200); assert.equal(result.user.gold, 4850);
-  [response, result] = await req('/api/store/purchase', {method: 'POST', body: JSON.stringify({productId: 'emoji-kalp', requestId: 'tek-istek'})});
-  assert.equal(response.status, 200); assert.equal(result.user.gold, 4850);
+test('mağaza temizlenirken altın ve elmas bakiyesi korunur', async () => {
+  const [purchaseResponse] = await req('/api/store/purchase', {method: 'POST', body: JSON.stringify({productId: 'emoji-kalp', requestId: 'eski-urun'})});
+  assert.equal(purchaseResponse.status, 404);
   await req('/api/logout', {method: 'POST'}); cookie = ''; await login();
-  [, result] = await req('/api/me'); assert.equal(result.user.gold, 4850); assert.equal(result.user.diamonds, 1000);
-  [, result] = await req('/api/store/products?category=EMOJ%C4%B0LER');
-  assert.equal(result.items.find(item => item.id === 'emoji-kalp').owned, true);
+  const [, result] = await req('/api/me'); assert.equal(result.user.gold, 5000); assert.equal(result.user.diamonds, 1000);
 });
 
 test('profil gerçek hesap verisini döndürür ve düzenlemeler yeniden girişte kalıcıdır', async () => {
@@ -64,7 +60,9 @@ test('profil gerçek hesap verisini döndürür ve düzenlemeler yeniden girişt
   await req('/api/logout', {method: 'POST'}); cookie = ''; await login();
   [, result] = await req('/api/profile');
   assert.equal(result.profile.about, 'Bugün harikayım ✨'); assert.equal(result.profile.selectedTitleId, 'title-1'); assert.equal(result.profile.username, 'ArayuzTest');
-  assert.ok(Array.isArray(result.profile.badges)); assert.ok(Array.isArray(result.profile.gifts)); assert.ok(Array.isArray(result.profile.achievements));
+  assert.equal(result.profile.ownedTitleIds.length, 1); assert.equal(result.profile.badges.length, 36);
+  assert.ok(result.profile.badges.every(item => item.assetPath && item.requirement));
+  assert.ok(Array.isArray(result.profile.gifts)); assert.ok(Array.isArray(result.profile.achievements));
 });
 
 test('haftalık liderlik örnek oyuncu uydurmaz', async () => {
