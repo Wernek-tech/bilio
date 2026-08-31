@@ -73,6 +73,31 @@ export function joinBilRoom(room, user) {
   return room;
 }
 
+// ponytail: a bot is a regular seated player flagged isBot:true, auto-ready.
+export function addBilBot(room, hostUserId) {
+  if (room.hostUserId !== hostUserId) throw Error('Yalnızca kurucu bot ekleyebilir.');
+  if (room.status !== 'LOBBY') throw Error('Oyun zaten başladı.');
+  if (room.players.length >= room.capacity) throw Error('Oda dolu.');
+  const seat = nextSeat(room);
+  if (seat < 0) throw Error('Oda dolu.');
+  const n = room.players.filter((player) => player.isBot).length + 1;
+  room.players.push({
+    userId: `bilbot-${crypto.randomUUID()}`,
+    username: `Bot ${n}`,
+    avatarUrl: '',
+    titleId: 'title-1',
+    frameId: null,
+    ready: true,
+    connected: true,
+    isBot: true,
+    joinedAt: now(),
+    seat,
+  });
+  room.players.sort((a, b) => a.seat - b.seat);
+  evaluateBilCountdown(room);
+  return room;
+}
+
 export function leaveBilRoom(room, userId) {
   room.players = room.players.filter(player => player.userId !== userId);
   cancelBilCountdown(room);
@@ -141,6 +166,7 @@ export function startBilMatch(room, seed = crypto.randomInt(1, 2 ** 31 - 1)) {
     frameId: player.frameId,
     seat: player.seat,
     connected: player.connected,
+    isBot: Boolean(player.isBot),
     score: 0,
     correct: 0,
     wrong: 0,
@@ -176,9 +202,22 @@ export function startBilMatch(room, seed = crypto.randomInt(1, 2 ** 31 - 1)) {
   return match;
 }
 
+// ponytail: bot always knows the true word placements (server already does) — picks one unfound word per tick.
+// Paced by client polling (~1/s), not instant-solving the board.
+function botTakeTurn(match) {
+  const active = match.players[match.activeUserId];
+  if (!active?.isBot || match.status !== 'PLAYING') return;
+  const unfound = match.placements.filter((p) => !match.found.has(p.word));
+  if (!unfound.length) return;
+  const choice = unfound[Math.floor(Math.random() * unfound.length)];
+  const result = validateSelection(match, match.activeUserId, choice.start, choice.end, crypto.randomUUID(), now());
+  if (result.turnAdvanced) match.turnStartedAt = now();
+}
+
 export function tickBilMatch(match) {
   if (match.status !== 'PLAYING') return;
-  if (now() < match.turnEndsAt) return;
+  botTakeTurn(match);
+  if (match.status !== 'PLAYING' || now() < match.turnEndsAt) return;
   const current = match.players[match.activeUserId];
   if (current) current.timeouts += 1;
   advance(match);

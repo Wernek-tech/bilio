@@ -2,10 +2,10 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import {createRoom,roomByCode,roomForUser,joinRoom,leaveRoom,toggleReady,publicRoom,matches,privateMatch,invites,finishVote,touchPlayer,setSpectating,addDeadMessage,voteProgress} from './vampire-store.mjs';
+import {createRoom,roomByCode,roomForUser,joinRoom,leaveRoom,toggleReady,publicRoom,matches,privateMatch,invites,finishVote,touchPlayer,setSpectating,addDeadMessage,voteProgress,addBot} from './vampire-store.mjs';
 import {validateNightAction} from './vampire-engine.mjs';
 import {applyXp, rankPlayers} from './bil-bakalim-engine.mjs';
-import {bilMatches,createBilRoom,bilRoomByCode,bilRoomForUser,joinBilRoom,leaveBilRoom,updateBilSettings,toggleBilReady,publicBilRoom,publicBilMatch,makeBilSelection,addBilChat} from './bil-bakalim-store.mjs';
+import {bilMatches,createBilRoom,bilRoomByCode,bilRoomForUser,joinBilRoom,leaveBilRoom,updateBilSettings,toggleBilReady,publicBilRoom,publicBilMatch,makeBilSelection,addBilChat,addBilBot} from './bil-bakalim-store.mjs';
 
 const PORT=Number(process.env.BILIO_API_PORT||8787),dbPath=path.resolve(process.env.BILIO_DB_PATH||'server/data.json');
 fs.mkdirSync(path.dirname(dbPath),{recursive:true});let db={users:[],sessions:{},lobbyMessages:[],lobbyInvites:[],transactions:[],weeklyArchives:[],meta:{}};try{db={...db,...JSON.parse(fs.readFileSync(dbPath,'utf8'))}}catch{}
@@ -103,6 +103,7 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
  if(url.pathname==='/api/game/bil-bakalim/active'&&req.method==='GET'){const room=bilRoomForUser(me.id);if(!room)return send(res,200,{room:null,match:null});const roomState=publicBilRoom(room);const match=room.matchId?bilMatches.get(room.matchId):null;if(match?.status==='FINISHED')settleBilMatch(match);return send(res,200,{room:roomState,match:match?publicBilMatch(match):null,user:publicUser(me)})}
  if(url.pathname==='/api/game/bil-bakalim/create'&&req.method==='POST'){const old=bilRoomForUser(me.id);const room=old||createBilRoom(me);return send(res,200,{room:publicBilRoom(room)})}
  if(url.pathname==='/api/game/bil-bakalim/join'&&req.method==='POST'){const b=await body(req),room=bilRoomByCode(b.code);if(!room)return send(res,404,{error:'Bu oda artık mevcut değil.'});const current=bilRoomForUser(me.id);if(current&&current.id!==room.id)return send(res,409,{error:'Önce mevcut odanızdan ayrılmalısınız.'});return send(res,200,{room:publicBilRoom(joinBilRoom(room,me))})}
+ if(url.pathname==='/api/game/bil-bakalim/add-bot'&&req.method==='POST'){const room=bilRoomForUser(me.id);if(!room)return send(res,404,{error:'Aktif oda yok.'});try{addBilBot(room,me.id)}catch(error){return send(res,409,{error:error.message})}return send(res,200,{room:publicBilRoom(room)})}
  if(url.pathname==='/api/game/bil-bakalim/leave'&&req.method==='POST'){const room=bilRoomForUser(me.id);if(room)leaveBilRoom(room,me.id);return send(res,200,{ok:true})}
  if(url.pathname==='/api/game/bil-bakalim/settings'&&req.method==='POST'){const room=bilRoomForUser(me.id);if(!room)return send(res,404,{error:'Aktif oda yok.'});if(room.hostUserId!==me.id)return send(res,403,{error:'Oda ayarlarını yalnızca kurucu değiştirebilir.'});const b=await body(req);return send(res,200,{room:publicBilRoom(updateBilSettings(room,me.id,b))})}
  if(url.pathname==='/api/game/bil-bakalim/ready'&&req.method==='POST'){const room=bilRoomForUser(me.id);if(!room)return send(res,404,{error:'Aktif oda yok.'});return send(res,200,{ready:toggleBilReady(room,me.id),room:publicBilRoom(room)})}

@@ -167,6 +167,14 @@ export default function BilBakalimGame() {
     finally { setBusy(false); }
   };
 
+  const addBot = async () => {
+    if (!host || busy) return;
+    setBusy(true);
+    try { await api('/game/bil-bakalim/add-bot', {method: 'POST'}); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Bot eklenemedi.'); }
+    finally { setBusy(false); }
+  };
+
   const copyCode = async () => {
     if (!room?.code) return;
     try { await navigator.clipboard.writeText(room.code); setError('Oda kodu kopyalandı.'); }
@@ -277,7 +285,7 @@ export default function BilBakalimGame() {
   return <div className="bb-shell bb-lobby-screen">
     <header className="bb-lobby-header">
       <div className="bb-brand-side"><button className="bb-back" onClick={() => void leave()} aria-label="Oyunlara dön">←</button><img src="/assets/bilio-logo.png" alt="Bilio"/></div>
-      <div className="bb-lobby-heading"><h1>💡 BİL BAKALIM</h1><div><span>ODA KODU: <b>{room.code}</b></span><button onClick={() => void copyCode()} aria-label="Oda kodunu kopyala">KOPYALA</button><button onClick={() => void invite()} disabled={!host || busy}>DAVET ET</button></div></div>
+      <div className="bb-lobby-heading"><h1>💡 BİL BAKALIM</h1><div><span>ODA KODU: <b>{room.code}</b></span><button onClick={() => void copyCode()} aria-label="Oda kodunu kopyala">KOPYALA</button><button onClick={() => void invite()} disabled={!host || busy}>DAVET ET</button><button onClick={() => void addBot()} disabled={!host || busy}>🤖 BOT EKLE</button></div></div>
       <div aria-hidden="true"/>
     </header>
     <main className="bb-lobby-main-real">
