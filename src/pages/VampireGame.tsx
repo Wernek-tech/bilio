@@ -4,8 +4,8 @@ import {useAuth} from '../auth/auth';
 import {vampireSeatPosition} from '../vampire/seatLayout.js';
 
 type ChatMessage = {id: string; username?: string; system?: boolean; content: string};
-type RoomPlayer = {userId: string; username: string; ready: boolean; connected?: boolean; avatarUrl?: string; frameId?: string | null};
-type MatchPlayer = {username: string; alive: boolean; connected: boolean; spectating: boolean; avatarUrl?: string; frameId?: string | null};
+type RoomPlayer = {userId: string; username: string; ready: boolean; connected?: boolean; avatarUrl?: string; frameId?: string | null; bot?: boolean};
+type MatchPlayer = {username: string; alive: boolean; connected: boolean; spectating: boolean; avatarUrl?: string; frameId?: string | null; bot?: boolean};
 type Room = {code: string; hostUserId: string; players: RoomPlayer[]; messages: ChatMessage[]; countdownEndsAt?: number; nightDuration: number; discussionDuration: number; votingDuration: number};
 type VoteState = {target?: string; abstain?: boolean} | null;
 type Execution = {eliminatedId: string | null; username: string | null; role: string | null; tie: boolean} | null;
@@ -117,7 +117,7 @@ export default function VampireGame() {
     <main>
       <section className="vk-panel players"><h2>OYUNCULAR {room.players.length}/12</h2><div className="vk-grid">{Array.from({length: 12}, (_, index) => {
         const player = room.players[index];
-        return <div className="vk-seat" key={player?.userId || `empty-${index}`}>{player ? <><Avatar player={player}/><b title={player.username}>{player.username}</b>{player.userId === room.hostUserId && <em>KURUCU</em>}<span className={player.ready ? 'ready' : 'wait'}>{player.ready ? 'HAZIR' : 'BEKLİYOR'}</span></> : <><i>＋</i><small>OYUNCU BEKLENİYOR</small></>}</div>;
+        return <div className="vk-seat" key={player?.userId || `empty-${index}`}>{player ? <><Avatar player={player}/><b title={player.username}>{player.username}</b>{player.bot&&<img className="vk-bot-title" src="/assets/bilio-logo.png" alt="Bilio botu"/>}{player.userId === room.hostUserId && <em>KURUCU</em>}<span className={player.ready ? 'ready' : 'wait'}>{player.ready ? 'HAZIR' : 'BEKLİYOR'}</span></> : <><i>＋</i><small>OYUNCU BEKLENİYOR</small></>}</div>;
       })}</div></section>
       <aside><div className="vk-panel"><h2>ODA AYARLARI</h2><p>BAŞLAMAK İÇİN EN AZ <b>8</b></p><p>OYUNCU <b>{room.players.length}/12</b></p><p>GECE <b>{room.nightDuration} SN</b></p><p>TARTIŞMA <b>{room.discussionDuration} SN</b></p><p>OYLAMA <b>{room.votingDuration} SN</b></p><h3>ROL DAĞILIMI</h3><p>VAMPİR ×2 · KAHİN ×1 · DOKTOR ×1</p><p>KÖYLÜ ×{Math.max(0, room.players.length - 4)}</p></div>
         <Chat title="ODA SOHBETİ" messages={room.messages} value={msg} setValue={setMsg} send={async () => {const content = msg.trim(); if (!content) return; const ok = await post('/api/game/vampire/chat', {content}); if (ok !== undefined) setMsg('');}}/>

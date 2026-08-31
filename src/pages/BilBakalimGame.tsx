@@ -63,6 +63,7 @@ const resultNumber = (value: number | undefined) => new Intl.NumberFormat('tr-TR
 
 function TitleArt({id}: {id?: string}) {
   if (!id) return null;
+  if (id === 'bilio-bot') return <img className="bb-title-art bot-title" src="/assets/bilio-logo.png" alt="Bilio botu"/>;
   const title = titles.find(item => item.id === id);
   return title ? <img className="bb-title-art" src={title.assetPath} alt={`${title.name} unvanı`}/> : null;
 }
