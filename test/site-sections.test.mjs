@@ -65,6 +65,23 @@ test('profil gerçek hesap verisini döndürür ve düzenlemeler yeniden girişt
   assert.ok(Array.isArray(result.profile.gifts)); assert.ok(Array.isArray(result.profile.achievements));
 });
 
+test('lobide oyuncular gerçek hesapları arkadaş ekleyebilir ve durum profilde kalıcıdır', async () => {
+  const firstCookie = cookie;
+  const [registerResponse, second] = await req('/api/register', {method: 'POST', body: JSON.stringify({username: 'ArkadasTest', password: 'Guvenli123', passwordRepeat: 'Guvenli123'})});
+  assert.equal(registerResponse.status, 201);
+  const secondCookie = registerResponse.headers.get('set-cookie').split(';')[0];
+  cookie = firstCookie;
+  let [response] = await req('/api/friends/add', {method: 'POST', body: JSON.stringify({userId: second.user.id})});
+  assert.equal(response.status, 200);
+  let result;
+  [response, result] = await req('/api/friends');
+  assert.equal(response.status, 200); assert.equal(result.items[0].username, 'ArkadasTest'); assert.equal(result.items[0].online, true);
+  cookie = secondCookie;
+  [, result] = await req('/api/friends');
+  assert.equal(result.items[0].username, 'ArayuzTest');
+  cookie = firstCookie;
+});
+
 test('haftalık liderlik örnek oyuncu uydurmaz', async () => {
   const [response, result] = await req('/api/leaderboard?limit=100');
   assert.equal(response.status, 200); assert.deepEqual(result.rows, []); assert.equal(result.current, null);
