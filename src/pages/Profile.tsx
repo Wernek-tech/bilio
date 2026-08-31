@@ -1,6 +1,6 @@
-import {ChangeEvent, useEffect, useState} from 'react';
+import {ChangeEvent, useCallback, useEffect, useState} from 'react';
 import SiteShell from '../components/SiteShell';
-import {api, useAuth} from '../auth/AuthContext';
+import {api, useAuth} from '../auth/auth';
 import {titles} from '../data/titles';
 
 type ProfileData = {
@@ -51,12 +51,13 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const response = await api<{profile: ProfileData}>('/profile');
     setProfile(response.profile);
     setDraft({about: response.profile.about, titleId: response.profile.selectedTitleId, frameId: response.profile.selectedFrameId || ''});
-  };
-  useEffect(() => { if (auth.user) void load(); }, [auth.user?.id]);
+  }, []);
+  const userId = auth.user?.id;
+  useEffect(() => { if (userId) void load(); }, [load, userId]);
 
   const onFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; if (!file) return;

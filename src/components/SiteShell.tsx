@@ -1,6 +1,6 @@
 import {ReactNode,useState} from 'react';
 import {useLocation,useNavigate} from 'react-router-dom';
-import {useAuth} from '../auth/AuthContext';
+import {useAuth} from '../auth/auth';
 import AuthModal from '../auth/AuthModal';
 import AccountToolbar from './AccountToolbar';
 

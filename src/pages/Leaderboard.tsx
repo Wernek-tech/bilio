@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import SiteShell from '../components/SiteShell';
-import {api, useAuth} from '../auth/AuthContext';
+import {api, useAuth} from '../auth/auth';
 import {titles} from '../data/titles';
 
 type Row = {rank: number; userId: string; username: string; score: number; victories: number; titleId?: string; avatarUrl?: string};

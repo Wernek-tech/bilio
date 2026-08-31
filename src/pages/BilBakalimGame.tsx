@@ -1,6 +1,6 @@
 import {FormEvent, PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {api, useAuth} from '../auth/AuthContext';
+import {api, useAuth} from '../auth/auth';
 import AccountToolbar from '../components/AccountToolbar';
 import {titles} from '../data/titles';
 

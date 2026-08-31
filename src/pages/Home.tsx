@@ -1,4 +1,4 @@
-import {useState} from 'react';import {useLocation,useNavigate} from 'react-router-dom';import {useAuth} from '../auth/AuthContext';import AuthModal from '../auth/AuthModal';import AccountToolbar from '../components/AccountToolbar';
+import {useState} from 'react';import {useLocation,useNavigate} from 'react-router-dom';import {useAuth} from '../auth/auth';import AuthModal from '../auth/AuthModal';import AccountToolbar from '../components/AccountToolbar';
 type Game={title:string;to?:string;art:string};
 const games:Game[]=[
  {title:'ŞARKIYI BİL',to:'/oyun/sarkiyi-bil',art:'/assets/home/sarkiyi-bil.png'},

@@ -2,7 +2,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import {createRoom,roomByCode,roomForUser,joinRoom,leaveRoom,toggleReady,publicRoom,matches,privateMatch,invites,finishVote,addBot} from './vampire-store.mjs';
+import {createRoom,roomByCode,roomForUser,joinRoom,leaveRoom,toggleReady,publicRoom,matches,privateMatch,invites,finishVote} from './vampire-store.mjs';
 import {applyXp, rankPlayers} from './bil-bakalim-engine.mjs';
 import {bilMatches,createBilRoom,bilRoomByCode,bilRoomForUser,joinBilRoom,leaveBilRoom,updateBilSettings,toggleBilReady,publicBilRoom,publicBilMatch,makeBilSelection,addBilChat} from './bil-bakalim-store.mjs';
 
@@ -97,7 +97,6 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
  if(!me&&url.pathname.startsWith('/api/game/'))return send(res,401,{error:'Giriş gerekli.'});
  if(url.pathname==='/api/game/vampire/active'&&req.method==='GET'){const r=roomForUser(me.id);return send(res,200,{room:r?publicRoom(r):null,match:r?.matchId?privateMatch(matches.get(r.matchId),me.id):null})}
  if(url.pathname==='/api/game/vampire/create'&&req.method==='POST'){const old=roomForUser(me.id);return send(res,200,{room:publicRoom(old||createRoom(me))})}
- if(url.pathname==='/api/game/vampire/add-bot'&&req.method==='POST'){const r=roomForUser(me.id);if(!r)return send(res,404,{error:'Aktif oda yok.'});try{addBot(r,me.id)}catch(e){return send(res,409,{error:e.message})}return send(res,200,{room:publicRoom(r)})}
  if(url.pathname==='/api/game/vampire/join'&&req.method==='POST'){const b=await body(req),r=roomByCode(b.code);if(!r)return send(res,404,{error:'Oda artık mevcut değil.'});return send(res,200,{room:publicRoom(joinRoom(r,me))})}
  const r=roomForUser(me.id);if(url.pathname==='/api/game/vampire/leave'&&req.method==='POST'){if(r)leaveRoom(r,me.id);return send(res,200,{ok:true})}if(!r)return send(res,404,{error:'Aktif oda yok.'});
  if(url.pathname==='/api/game/vampire/ready'&&req.method==='POST')return send(res,200,{ready:toggleReady(r,me.id),room:publicRoom(r)});

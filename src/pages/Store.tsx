@@ -1,6 +1,6 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import SiteShell from '../components/SiteShell';
-import {api, useAuth} from '../auth/AuthContext';
+import {api, useAuth} from '../auth/auth';
 import AuthModal from '../auth/AuthModal';
 
 type Product = {
@@ -21,15 +21,16 @@ export default function Store() {
   const [message, setMessage] = useState('');
   const [authOpen, setAuthOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api<{items: Product[]}>(`/store/products?category=${encodeURIComponent(category)}`);
       setItems(response.items);
     } catch (err) { setMessage(err instanceof Error ? err.message : 'Mağaza yüklenemedi.'); }
     finally { setLoading(false); }
-  };
-  useEffect(() => { void load(); }, [category, auth.user?.id]);
+  }, [category]);
+  const userId = auth.user?.id;
+  useEffect(() => { void load(); }, [load, userId]);
 
   const purchase = async () => {
     if (!selected || busy) return;
