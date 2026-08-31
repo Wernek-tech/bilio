@@ -1,0 +1,15 @@
+Changed/added relative to bilio-unvan-rozet-fix-clean.zip:
+server/auth-server.mjs
+server/vampire-engine.mjs
+server/vampire-store.mjs
+src/pages/VampireGame.tsx
+src/styles.css
+src/vampire/seatLayout.js
+src/vampire/seatLayout.d.ts
+test/vampire-flow.test.mjs
+
+Handoff/report files added for pending verification:
+VAMPIR_FIX_REPORT.md
+VAMPIR_TEST_REPORT.md
+VAMPIR_CHANGED_FILES.txt
+VAMPIR_46_TEST_OUTPUT.txt
