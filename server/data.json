@@ -42,7 +42,7 @@
       "usernameNormalized": "lotus",
       "passwordHash": "d008876ad28af3e322b4e6ce6c7bd6d8:019a902af4111026c7ab91dff67ef85322fb3f3806fa2ff8fe1262474707238c11eccbd1952b15260ea92d608950fa6d271e98995a2b33f07ebfdc74202e11d3",
       "createdAt": "2026-08-31T14:01:29.224Z",
-      "lastLoginAt": "2026-08-31T14:01:29.224Z",
+      "lastLoginAt": "2026-08-31T15:24:01.412Z",
       "level": 1,
       "xp": 0,
       "selectedTitleId": "title-1",
@@ -126,6 +126,61 @@
           "readAt": null
         }
       ]
+    },
+    {
+      "id": "308e2ea9-7518-49a3-9e13-f6c31781cb8e",
+      "username": "lobitest_qa",
+      "usernameNormalized": "lobitest_qa",
+      "passwordHash": "41c0461ef204996bea1728a23c72822c:f99456da0d02fb044f9eb765a2c180b8108d68820c98a04c4dc25feaa5048f71407dc09b648bd04306e76ab3e41cf21896f74f55ee99ec529033d7a1fe05be15",
+      "createdAt": "2026-08-31T15:00:27.184Z",
+      "lastLoginAt": "2026-08-31T15:00:27.184Z",
+      "level": 1,
+      "xp": 0,
+      "selectedTitleId": "title-1",
+      "gold": 5000,
+      "diamonds": 1000,
+      "registrationRewardGranted": true,
+      "profile": {
+        "about": "",
+        "avatarUrl": "",
+        "selectedFrameId": null,
+        "selectedBadgeIds": [],
+        "badges": [],
+        "gifts": [],
+        "achievements": []
+      },
+      "inventory": [],
+      "stats": {
+        "matches": 0,
+        "wins": 0,
+        "correct": 0,
+        "score": 0
+      },
+      "weekly": {
+        "score": 0,
+        "victories": 0,
+        "updatedAt": null
+      },
+      "messages": [
+        {
+          "id": "1f693471-36f0-42ac-826d-174b74a5e081",
+          "sender": "Bilio",
+          "title": "Bilio'ya hoş geldin!",
+          "body": "Kaydolduğunuz için teşekkür ederiz. Bilio dünyasında keyifli oyunlar ve iyi eğlenceler dileriz!",
+          "details": "Kayıt ödülleri: 5.000 altın ve 1.000 elmas",
+          "createdAt": "2026-08-31T15:00:27.184Z",
+          "readAt": null
+        }
+      ],
+      "notifications": [
+        {
+          "id": "abf83f33-33ad-47fd-aac8-22ac063a70a8",
+          "title": "Kayıt ödüllerin hazır!",
+          "body": "5.000 altın ve 1.000 elmas hesabına eklendi.",
+          "createdAt": "2026-08-31T15:00:27.184Z",
+          "readAt": null
+        }
+      ]
     }
   ],
   "sessions": {
@@ -136,6 +191,14 @@
     "5b03406de263b2ba7f8edc068c58bce444ea0959137eee3bfdeb8be288e97bb8": {
       "userId": "c4cd32b2-0602-45ca-8839-c0062e33847f",
       "createdAt": 1788187919930
+    },
+    "112b4c06381a471a6f7ae1a9a4b440a159defa51ccdb4e9fdcf93f8c499d4adf": {
+      "userId": "308e2ea9-7518-49a3-9e13-f6c31781cb8e",
+      "createdAt": 1788188427183
+    },
+    "317d2d5903678f1e56e017340d9a5b952bdf03c4db5614656fefa8ce32138536": {
+      "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
+      "createdAt": 1788189841384
     }
   },
   "lobbyMessages": [
