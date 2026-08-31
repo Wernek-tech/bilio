@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from 'react';
 import SiteShell from '../components/SiteShell';
 import {api, useAuth} from '../auth/auth';
 import AuthModal from '../auth/AuthModal';
+import {createRequestId} from '../utils/requestId';
 
 type Product = {
   id: string; category: string; name: string; price: number; currency: 'gold' | 'diamonds'; preview: string;
@@ -38,7 +39,7 @@ export default function Store() {
     setBusy(true); setMessage('');
     try {
       const response = await api<{user: {gold: number; diamonds: number}}>('/store/purchase', {
-        method: 'POST', body: JSON.stringify({productId: selected.id, requestId: crypto.randomUUID()}),
+        method: 'POST', body: JSON.stringify({productId: selected.id, requestId: createRequestId()}),
       });
       auth.patch({gold: response.user.gold, diamonds: response.user.diamonds});
       setMessage('Satın alma işlemi tamamlandı.');

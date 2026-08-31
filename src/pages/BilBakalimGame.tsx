@@ -1,8 +1,8 @@
 import {FormEvent, PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {api, useAuth} from '../auth/auth';
-import AccountToolbar from '../components/AccountToolbar';
 import {titles} from '../data/titles';
+import {createRequestId} from '../utils/requestId';
 
 type Player = {
   userId: string;
@@ -22,7 +22,7 @@ type Player = {
   xp?: number;
 };
 
-type RoomMessage = {id: string; userId: string; username: string; content: string; createdAt: number};
+type RoomMessage = {id: string; userId: string; username: string; avatarUrl?: string; titleId?: string; content: string; createdAt: number};
 type Room = {
   id: string;
   code: string;
@@ -68,9 +68,18 @@ function TitleArt({id}: {id?: string}) {
 }
 
 function Avatar({player, large = false}: {player: Player; large?: boolean}) {
-  return <div className={`bb-avatar-real${large ? ' large' : ''}`}>
-    {player.avatarUrl ? <img src={player.avatarUrl} alt={`${player.username} profil resmi`}/> : <span>{player.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</span>}
+  return <div className={`bb-avatar-frame${large ? ' large' : ''}${player.frameId ? ' equipped' : ''}`} data-frame={player.frameId || undefined}>
+    <div className="bb-avatar-real">
+      {player.avatarUrl ? <img src={player.avatarUrl} alt={`${player.username} profil resmi`}/> : <span>{player.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</span>}
+    </div>
   </div>;
+}
+
+function RoomChat({room, chat, busy, onChatChange, onSubmit, compact = false}: {room: Room; chat: string; busy: boolean; onChatChange: (value: string) => void; onSubmit: (event: FormEvent) => void; compact?: boolean}) {
+  return <section className={`bb-room-chat${compact ? ' compact' : ''}`}><h2>ODA SOHBETİ</h2><div className="bb-room-chat-history">{room.messages.length === 0 ? <div className="bb-chat-empty">Henüz mesaj bulunmuyor.</div> : room.messages.map(message => {
+    const player = room.players.find(item => item.userId === message.userId) || {userId: message.userId, username: message.username, avatarUrl: message.avatarUrl, titleId: message.titleId, seat: 0};
+    return <article className="bb-room-message" key={message.id}><Avatar player={player}/><div><header><b>{message.username}</b><time>{new Date(message.createdAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}</time></header><p>{message.content}</p></div></article>;
+  })}</div><form onSubmit={onSubmit}><input aria-label="Oda mesajı" maxLength={500} placeholder="Mesajını yaz..." value={chat} onChange={event => onChatChange(event.target.value)} disabled={busy}/><button className="bb-donut-send" aria-label="Mesaj gönder" disabled={!chat.trim() || busy}><img src="/assets/nav-donut.png" alt=""/></button></form></section>;
 }
 
 export default function BilBakalimGame() {
@@ -171,11 +180,20 @@ export default function BilBakalimGame() {
 
   const submitSelection = async () => {
     if (!selection || !match || match.activeUserId !== auth.user?.id || match.status !== 'PLAYING' || busy) return;
+    const deltaX = Math.abs(selection.end[0] - selection.start[0]);
+    const deltaY = Math.abs(selection.end[1] - selection.start[1]);
+    const isStraightLine = deltaX === 0 || deltaY === 0 || deltaX === deltaY;
+    const selectedLength = Math.max(deltaX, deltaY) + 1;
+    if (!isStraightLine || selectedLength < 2) {
+      setSelection(null);
+      dragging.current = false;
+      return;
+    }
     setBusy(true);
     try {
       const response = await api<{match: Match; result: {ok?: boolean; error?: string; alreadyFound?: boolean}; user?: unknown}>('/game/bil-bakalim/select', {
         method: 'POST',
-        body: JSON.stringify({start: selection.start, end: selection.end, requestId: crypto.randomUUID()}),
+        body: JSON.stringify({start: selection.start, end: selection.end, requestId: createRequestId()}),
       });
       setMatch(response.match);
       if (response.result.alreadyFound) setError('Bu kelime daha önce bulundu.');
@@ -188,7 +206,7 @@ export default function BilBakalimGame() {
 
   const startCell = (x: number, y: number, event: ReactPointerEvent<HTMLButtonElement>) => {
     if (!match || match.activeUserId !== auth.user?.id || match.status !== 'PLAYING') return;
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
     dragging.current = true;
     setSelection({start: [x, y], end: [x, y]});
   };
@@ -217,10 +235,9 @@ export default function BilBakalimGame() {
     }
     return <div className="bb-shell bb-game-screen">
       <header className="bb-game-header">
-        <button className="bb-back" onClick={() => void leave()} aria-label="Oyundan çık">←</button>
-        <img src="/assets/bilio-logo.png" alt="Bilio"/>
+        <div className="bb-brand-side"><button className="bb-back" onClick={() => void leave()} aria-label="Oyundan çık">←</button><img src="/assets/bilio-logo.png" alt="Bilio"/></div>
         <div className="bb-game-title"><span>💡</span><h1>BİL BAKALIM</h1><strong>00:{String(remaining).padStart(2, '0')}</strong></div>
-        <AccountToolbar/>
+        <aside className="bb-game-instruction"><span>💡</span><p>Bir harften başlayıp sürükle. Düz, dikey veya çapraz çizgi oluştur.</p></aside>
       </header>
       <main className="bb-game-stage">
         <section className="bb-wordbar-real"><h2>ARANAN KELİMELER {match.found.length}/20</h2><div>{match.words.map(word => <span key={word} className={match.found.includes(word) ? 'found' : ''}>{word}{match.found.includes(word) ? ' ✓' : ''}</span>)}</div></section>
@@ -237,8 +254,9 @@ export default function BilBakalimGame() {
         <div className="bb-player-ring">{match.players.map(player => {const visualSeat = match.players.length === 4 ? [0, 2, 4, 6][player.seat] : player.seat; return <article key={player.userId} className={`bb-ring-player bb-seat-${visualSeat}${player.userId === match.activeUserId ? ' active' : ''}`}>
           <Avatar player={player}/><b>{player.username}</b><TitleArt id={player.titleId}/><small>{player.userId === match.activeUserId ? 'SIRA SENDE' : `${resultNumber(player.score)} PUAN`}</small>
         </article>})}</div>
-        <aside className="bb-game-meta"><strong>KALAN {20 - match.found.length} KELİME</strong><span>TUR {match.turnCount}</span></aside>
-        <footer className="bb-game-status"><span>DOĞRU BULDUKÇA DEVAM ET • HATA YAPARSAN SIRA GEÇER</span><b>{error || (active ? `SIRADAKİ: ${active.username}` : '')}</b></footer>
+        <RoomChat room={room} chat={chat} busy={busy} onChatChange={setChat} onSubmit={sendChat} compact/>
+        <div className="bb-active-player" aria-live="polite">{active ? `Sıradaki: ${active.username}` : ''}</div>
+        {error && <div className="bb-toast" role="status">{error}</div>}
       </main>
     </div>;
   }
@@ -260,16 +278,16 @@ export default function BilBakalimGame() {
     <header className="bb-lobby-header">
       <div className="bb-brand-side"><button className="bb-back" onClick={() => void leave()} aria-label="Oyunlara dön">←</button><img src="/assets/bilio-logo.png" alt="Bilio"/></div>
       <div className="bb-lobby-heading"><h1>💡 BİL BAKALIM</h1><div><span>ODA KODU: <b>{room.code}</b></span><button onClick={() => void copyCode()} aria-label="Oda kodunu kopyala">KOPYALA</button><button onClick={() => void invite()} disabled={!host || busy}>DAVET ET</button></div></div>
-      <AccountToolbar/>
+      <div aria-hidden="true"/>
     </header>
     <main className="bb-lobby-main-real">
-      <section className="bb-room-players-panel"><h2>OYUNCULAR <b>{room.players.length}/{room.capacity}</b></h2><div className="bb-room-grid">{slots.map((player, seat) => player ? <article key={player.userId} className="bb-room-player-card"><Avatar player={player} large/><b>{player.username}</b><TitleArt id={player.titleId}/><small className={room.hostUserId === player.userId ? 'host' : player.ready ? 'ready' : ''}>{room.hostUserId === player.userId ? 'KURUCU' : player.ready ? 'HAZIR' : 'BEKLİYOR'}</small></article> : <article key={`empty-${seat}`} className="bb-room-player-card empty"><div className="bb-empty-avatar">+</div><span>Oyuncu bekleniyor</span></article>)}</div></section>
+      <section className="bb-room-players-panel"><h2>OYUNCULAR <b>{room.players.length}/{room.capacity}</b></h2><div className={`bb-room-grid capacity-${room.capacity}`}>{slots.map((player, seat) => player ? <article key={player.userId} className="bb-room-player-card"><Avatar player={player} large/><b>{player.username}</b><TitleArt id={player.titleId}/><small className={room.hostUserId === player.userId ? 'host' : player.ready ? 'ready' : ''}>{room.hostUserId === player.userId ? 'KURUCU' : player.ready ? 'HAZIR' : 'BEKLİYOR'}</small></article> : <article key={`empty-${seat}`} className="bb-room-player-card empty"><div className="bb-empty-avatar">+</div><span>Oyuncu bekleniyor</span></article>)}</div></section>
       <aside className="bb-room-side">
         <section className="bb-settings-panel"><h2>ODA AYARLARI</h2><div className="bb-setting-row"><b>OYUNCU SAYISI</b><span>{[4, 8].map(value => <button key={value} disabled={!host || busy || value < room.players.length} className={room.capacity === value ? 'selected' : ''} onClick={() => void changeSettings({capacity: value})}>{value} KİŞİ</button>)}</span></div><div className="bb-setting-row categories"><b>KELİME KATEGORİSİ</b><span>{categories.map(value => <button key={value} disabled={!host || busy} className={room.category === value ? 'selected' : ''} onClick={() => void changeSettings({category: value})}>{value}</button>)}</span></div><div className="bb-setting-row"><b>TUR SÜRESİ</b><span>{durations.map(value => <button key={value} disabled={!host || busy} className={room.turnSeconds === value ? 'selected' : ''} onClick={() => void changeSettings({turnSeconds: value})}>{value} SN</button>)}</span></div><div className="bb-setting-row readonly"><b>KELİME SAYISI</b><strong>20 KELİME</strong></div></section>
-        <section className="bb-room-chat"><h2>ODA SOHBETİ</h2><div className="bb-room-chat-history">{room.messages.length === 0 ? <div className="bb-chat-empty">Henüz mesaj bulunmuyor.</div> : room.messages.map(message => <p key={message.id}><b>{message.username}</b><span>{message.content}</span></p>)}</div><form onSubmit={sendChat}><input maxLength={500} placeholder="Mesajını yaz..." value={chat} onChange={event => setChat(event.target.value)} disabled={busy}/><button className="bb-donut-send" aria-label="Mesaj gönder" disabled={!chat.trim() || busy}><img src="/assets/nav-donut.png" alt=""/></button></form></section>
+        <RoomChat room={room} chat={chat} busy={busy} onChatChange={setChat} onSubmit={sendChat}/>
       </aside>
     </main>
-    <footer className="bb-lobby-footer"><button onClick={() => void leave()}>ODADAN ÇIK</button><div><strong>{room.players.length}/{room.capacity} OYUNCU ODADA</strong><span>{countdown > 0 ? `OYUN ${countdown} SANİYE SONRA BAŞLIYOR` : room.players.length < room.capacity ? 'OYUNUN BAŞLAMASI İÇİN OYUNCULAR BEKLENİYOR' : `${readyCount}/${room.capacity} OYUNCU HAZIR`}</span></div><button className="gold" onClick={() => void toggleReady()} disabled={busy}>{me?.ready ? 'HAZIRLIĞI İPTAL ET' : 'HAZIR'}</button></footer>
+    <footer className="bb-lobby-footer"><div/><div><strong>{room.players.length}/{room.capacity} OYUNCU ODADA</strong><span>{countdown > 0 ? `OYUN ${countdown} SANİYE SONRA BAŞLIYOR` : room.players.length < room.capacity ? 'OYUNUN BAŞLAMASI İÇİN OYUNCULAR BEKLENİYOR' : `${readyCount}/${room.capacity} OYUNCU HAZIR`}</span></div><button className="gold" onClick={() => void toggleReady()} disabled={busy}>{me?.ready ? 'HAZIRLIĞI İPTAL ET' : 'HAZIR'}</button></footer>
     {error && <div className="bb-toast" role="status">{error}</div>}
   </div>;
 }
