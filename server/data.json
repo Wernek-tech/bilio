@@ -71,6 +71,61 @@
         "victories": 0,
         "updatedAt": null
       }
+    },
+    {
+      "id": "c4cd32b2-0602-45ca-8839-c0062e33847f",
+      "username": "BilioQueen",
+      "usernameNormalized": "bilioqueen",
+      "passwordHash": "39883bb9ba73123e2548243cbc5ea187:6aeadb1f173b7033aa2d0f67114dda9d38312023873c5c048cc526aa8b0c477ba8a2eae613400940e2bd49a7d43d2fa07c9dd443f46711bbc751c01509f4a48a",
+      "createdAt": "2026-08-31T14:51:59.931Z",
+      "lastLoginAt": "2026-08-31T14:51:59.931Z",
+      "level": 1,
+      "xp": 0,
+      "selectedTitleId": "title-1",
+      "gold": 5000,
+      "diamonds": 1000,
+      "registrationRewardGranted": true,
+      "profile": {
+        "about": "",
+        "avatarUrl": "",
+        "selectedFrameId": null,
+        "selectedBadgeIds": [],
+        "badges": [],
+        "gifts": [],
+        "achievements": []
+      },
+      "inventory": [],
+      "stats": {
+        "matches": 0,
+        "wins": 0,
+        "correct": 0,
+        "score": 0
+      },
+      "weekly": {
+        "score": 0,
+        "victories": 0,
+        "updatedAt": null
+      },
+      "messages": [
+        {
+          "id": "cb807e80-ed00-4fd0-8d95-ae897e7b926d",
+          "sender": "Bilio",
+          "title": "Bilio'ya hoş geldin!",
+          "body": "Kaydolduğunuz için teşekkür ederiz. Bilio dünyasında keyifli oyunlar ve iyi eğlenceler dileriz!",
+          "details": "Kayıt ödülleri: 5.000 altın ve 1.000 elmas",
+          "createdAt": "2026-08-31T14:51:59.931Z",
+          "readAt": "2026-08-31T14:52:05.645Z"
+        }
+      ],
+      "notifications": [
+        {
+          "id": "d19391eb-d22a-4d09-96f6-3d1c8e6023d4",
+          "title": "Kayıt ödüllerin hazır!",
+          "body": "5.000 altın ve 1.000 elmas hesabına eklendi.",
+          "createdAt": "2026-08-31T14:51:59.931Z",
+          "readAt": null
+        }
+      ]
     }
   ],
   "sessions": {
@@ -78,9 +133,9 @@
       "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
       "createdAt": 1788184889224
     },
-    "03bd55115ba42c70125e9001a39aebd2294ab121f1e1710641b9262e86688b2e": {
-      "userId": "c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
-      "createdAt": 1788187543657
+    "5b03406de263b2ba7f8edc068c58bce444ea0959137eee3bfdeb8be288e97bb8": {
+      "userId": "c4cd32b2-0602-45ca-8839-c0062e33847f",
+      "createdAt": 1788187919930
     }
   },
   "lobbyMessages": [
