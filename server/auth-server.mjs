@@ -114,6 +114,7 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
  if(url.pathname==='/api/game/vampire/active'&&req.method==='GET'){const r=roomForUser(me.id);if(r)touchPlayer(r,me);return send(res,200,{room:r?publicRoom(r):null,match:r?.matchId?privateMatch(matches.get(r.matchId),me.id):null})}
  if(url.pathname==='/api/game/vampire/create'&&req.method==='POST'){const old=roomForUser(me.id),r=old||createRoom(me);touchPlayer(r,me);return send(res,200,{room:publicRoom(r)})}
  if(url.pathname==='/api/game/vampire/join'&&req.method==='POST'){const b=await body(req),r=roomByCode(b.code);if(!r)return send(res,404,{error:'Oda artık mevcut değil.'});const current=roomForUser(me.id);if(current&&current.id!==r.id)return send(res,409,{error:'Önce mevcut odandan ayrılmalısın.'});const joined=joinRoom(r,me);touchPlayer(joined,me);return send(res,200,{room:publicRoom(joined)})}
+ if(url.pathname==='/api/game/vampire/add-bot'&&req.method==='POST'){const r=roomForUser(me.id);if(!r)return send(res,404,{error:'Aktif oda yok.'});try{addBot(r,me.id)}catch(error){return send(res,409,{error:error.message})}return send(res,200,{room:publicRoom(r)})}
  const r=roomForUser(me.id);if(url.pathname==='/api/game/vampire/leave'&&req.method==='POST'){if(r)leaveRoom(r,me.id);return send(res,200,{ok:true})}if(!r)return send(res,404,{error:'Aktif oda yok.'});
  touchPlayer(r,me);
  if(url.pathname==='/api/game/vampire/ready'&&req.method==='POST')return send(res,200,{ready:toggleReady(r,me.id),room:publicRoom(r)});

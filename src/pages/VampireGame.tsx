@@ -113,7 +113,7 @@ export default function VampireGame() {
 
   if (!match) return <div className="vk-shell vk-lobby">
     <Top title="VAMPİR KÖYLÜ" onLeave={leave}/>
-    <div className="vk-code">ODA KODU: <b>{room.code}</b> <button onClick={() => void navigator.clipboard?.writeText(room.code)}>KOPYALA</button><button disabled={pending || room.hostUserId !== user?.id} onClick={() => void post('/api/game/vampire/invite')}>DAVET ET</button></div>
+    <div className="vk-code">ODA KODU: <b>{room.code}</b> <button onClick={() => void navigator.clipboard?.writeText(room.code)}>KOPYALA</button><button disabled={pending || room.hostUserId !== user?.id} onClick={() => void post('/api/game/vampire/invite')}>DAVET ET</button><button disabled={pending || room.hostUserId !== user?.id || room.players.length >= 12} onClick={() => void post('/api/game/vampire/add-bot')}>🤖 BOT EKLE</button></div>
     <main>
       <section className="vk-panel players"><h2>OYUNCULAR {room.players.length}/12</h2><div className="vk-grid">{Array.from({length: 12}, (_, index) => {
         const player = room.players[index];

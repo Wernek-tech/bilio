@@ -70,6 +70,29 @@ export function joinRoom(room, user) {
   return room;
 }
 
+// ponytail: a bot is just a regular room player flagged isBot:true, auto-ready — startMatch/tickMatch treat it like any player.
+export function addBot(room, hostUserId) {
+  if (room.hostUserId !== hostUserId) throw Error('Yalnızca kurucu bot ekleyebilir.');
+  if (room.status !== 'LOBBY') throw Error('Oyun başlamış.');
+  if (room.players.length >= room.maxPlayers) throw Error('Oda dolu.');
+  const n = room.players.filter((player) => player.isBot).length + 1;
+  const username = `Bot ${n}`;
+  room.players.push({
+    userId: `bot-${crypto.randomUUID()}`,
+    username,
+    ready: true,
+    connected: true,
+    lastSeenAt: now(),
+    joinedAt: now(),
+    isBot: true,
+    avatarUrl: '',
+    frameId: null,
+  });
+  evaluate(room);
+  sys(room, `${username} odaya katıldı.`);
+  return room;
+}
+
 export function touchPlayer(room, user) {
   const player = room?.players.find((item) => item.userId === user.id);
   if (!player) return;
@@ -87,7 +110,7 @@ export function touchPlayer(room, user) {
 
 export function updateConnections(room, timestamp = now()) {
   for (const player of room.players) {
-    player.connected = timestamp - (player.lastSeenAt || 0) <= connectedWindowMs;
+    player.connected = player.isBot ? true : timestamp - (player.lastSeenAt || 0) <= connectedWindowMs;
     const matchPlayer = room.matchId ? matches.get(room.matchId)?.players[player.userId] : null;
     if (matchPlayer) matchPlayer.connected = player.connected;
   }
@@ -185,6 +208,7 @@ export function startMatch(room, timestamp = now()) {
       nightTarget: null,
       spectating: false,
       left: false,
+      isBot: Boolean(player.isBot),
       avatarUrl: player.avatarUrl || '',
       frameId: player.frameId || null,
     };
@@ -243,11 +267,46 @@ export function voteProgress(match) {
   return {completed: eligible.filter((id) => match.votes[id]).length, required: eligible.length};
 }
 
+
+// ponytail: dumb-random bot AI, just enough to never stall a match. Vampire bots converge on one shared
+// kill target (mirrors/joins whatever an already-decided vampire — bot or human — picked this night).
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+function botAct(match) {
+  if (match.phase === 'NIGHT') {
+    const alive = Object.entries(match.players).filter(([, player]) => player.alive && !player.left);
+    const vampires = alive.filter(([, player]) => player.role === 'VAMPIRE');
+    const nonVampireIds = alive.filter(([, player]) => player.role !== 'VAMPIRE').map(([id]) => id);
+    const decidedTarget = vampires.map(([, player]) => player.nightTarget).find(Boolean);
+    const sharedTarget = decidedTarget || (nonVampireIds.length ? pick(nonVampireIds) : null);
+    for (const [, player] of vampires) {
+      if (player.isBot && !player.nightTarget && sharedTarget) player.nightTarget = sharedTarget;
+    }
+    for (const [id, player] of alive) {
+      if (!player.isBot || player.nightTarget || player.role === 'VILLAGER' || player.role === 'VAMPIRE') continue;
+      if (player.role === 'DOCTOR') {
+        const targets = alive.map(([pid]) => pid);
+        if (targets.length) player.nightTarget = pick(targets);
+      } else if (player.role === 'SEER') {
+        const targets = alive.filter(([pid]) => pid !== id).map(([pid]) => pid);
+        if (targets.length) player.nightTarget = pick(targets);
+      }
+    }
+  } else if (match.phase === 'DAY_VOTING') {
+    const alive = Object.entries(match.players).filter(([, player]) => player.alive && !player.left);
+    for (const [id, player] of alive) {
+      if (!player.isBot || match.votes[id]) continue;
+      const targets = alive.filter(([pid]) => pid !== id).map(([pid]) => pid);
+      match.votes[id] = targets.length && Math.random() < 0.85 ? {target: pick(targets), abstain: false} : {abstain: true};
+    }
+  }
+}
+
 export function tickMatch(match, timestamp = now()) {
   if (!match || match.phase === 'GAME_OVER') return;
   const room = rooms.get(match.roomId);
   if (!room) return;
   updateConnections(room, timestamp);
+  botAct(match);
 
   if (match.phase === 'DAY_VOTING') {
     const progress = voteProgress(match);
