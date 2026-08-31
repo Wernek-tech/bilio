@@ -10,10 +10,28 @@
       "level": 1,
       "xp": 0,
       "selectedTitleId": "title-1",
-      "gold": 0,
-      "diamonds": 0,
-      "messages": [],
-      "notifications": [],
+      "gold": 5000,
+      "diamonds": 1000,
+      "messages": [
+        {
+          "id": "dde839c7-615d-4bb3-9b10-af1a51c2df4a",
+          "sender": "Bilio",
+          "title": "Bilio'ya hoş geldin!",
+          "body": "Bilio’ya hoş geldin! Kayıt olduğun için teşekkür eder, iyi eğlenceler dileriz.",
+          "details": "Kayıt ödüllerin: 5.000 altın ve 1.000 elmas.",
+          "createdAt": "2026-08-31T17:36:28.355Z",
+          "readAt": null
+        }
+      ],
+      "notifications": [
+        {
+          "id": "26cb8945-b537-4b03-962f-ef8f2fc6f43a",
+          "title": "Kayıt ödüllerin hazır!",
+          "body": "5.000 altın ve 1.000 elmas hesabına eklendi.",
+          "createdAt": "2026-08-31T17:36:28.355Z",
+          "readAt": null
+        }
+      ],
       "inventory": [],
       "profile": {
         "about": "",
@@ -34,7 +52,8 @@
         "score": 0,
         "victories": 0,
         "updatedAt": null
-      }
+      },
+      "registrationRewardGranted": true
     },
     {
       "id": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
@@ -46,10 +65,28 @@
       "level": 1,
       "xp": 0,
       "selectedTitleId": "title-1",
-      "gold": 0,
-      "diamonds": 0,
-      "messages": [],
-      "notifications": [],
+      "gold": 5000,
+      "diamonds": 1000,
+      "messages": [
+        {
+          "id": "54255cfe-ce3f-473e-888c-b3b6a772fcb8",
+          "sender": "Bilio",
+          "title": "Bilio'ya hoş geldin!",
+          "body": "Bilio’ya hoş geldin! Kayıt olduğun için teşekkür eder, iyi eğlenceler dileriz.",
+          "details": "Kayıt ödüllerin: 5.000 altın ve 1.000 elmas.",
+          "createdAt": "2026-08-31T17:36:28.356Z",
+          "readAt": null
+        }
+      ],
+      "notifications": [
+        {
+          "id": "55f12488-ec51-4b5b-b31d-3fce8546eb5b",
+          "title": "Kayıt ödüllerin hazır!",
+          "body": "5.000 altın ve 1.000 elmas hesabına eklendi.",
+          "createdAt": "2026-08-31T17:36:28.356Z",
+          "readAt": null
+        }
+      ],
       "inventory": [],
       "profile": {
         "about": "",
@@ -70,7 +107,8 @@
         "score": 0,
         "victories": 0,
         "updatedAt": null
-      }
+      },
+      "registrationRewardGranted": true
     },
     {
       "id": "c4cd32b2-0602-45ca-8839-c0062e33847f",
@@ -78,7 +116,7 @@
       "usernameNormalized": "bilioqueen",
       "passwordHash": "39883bb9ba73123e2548243cbc5ea187:6aeadb1f173b7033aa2d0f67114dda9d38312023873c5c048cc526aa8b0c477ba8a2eae613400940e2bd49a7d43d2fa07c9dd443f46711bbc751c01509f4a48a",
       "createdAt": "2026-08-31T14:51:59.931Z",
-      "lastLoginAt": "2026-08-31T14:51:59.931Z",
+      "lastLoginAt": "2026-08-31T17:30:17.979Z",
       "level": 1,
       "xp": 0,
       "selectedTitleId": "title-1",
@@ -123,7 +161,7 @@
           "title": "Kayıt ödüllerin hazır!",
           "body": "5.000 altın ve 1.000 elmas hesabına eklendi.",
           "createdAt": "2026-08-31T14:51:59.931Z",
-          "readAt": null
+          "readAt": "2026-08-31T17:30:26.995Z"
         }
       ]
     },
@@ -188,10 +226,6 @@
       "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
       "createdAt": 1788184889224
     },
-    "5b03406de263b2ba7f8edc068c58bce444ea0959137eee3bfdeb8be288e97bb8": {
-      "userId": "c4cd32b2-0602-45ca-8839-c0062e33847f",
-      "createdAt": 1788187919930
-    },
     "112b4c06381a471a6f7ae1a9a4b440a159defa51ccdb4e9fdcf93f8c499d4adf": {
       "userId": "308e2ea9-7518-49a3-9e13-f6c31781cb8e",
       "createdAt": 1788188427183
@@ -199,6 +233,10 @@
     "317d2d5903678f1e56e017340d9a5b952bdf03c4db5614656fefa8ce32138536": {
       "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
       "createdAt": 1788189841384
+    },
+    "4237c380f1bcc4b62fa223fbb3bc58822ddd56de6350e89333c961d47e5f3dec": {
+      "userId": "c4cd32b2-0602-45ca-8839-c0062e33847f",
+      "createdAt": 1788197417953
     }
   },
   "lobbyMessages": [

@@ -1,4 +1,275 @@
-import {useMemo,useState} from 'react';import {useNavigate} from 'react-router-dom';
-const names=['OyunCanavarı','BilgeAdam','NeşeliPenguen','MüzikKralı','ÇizgiKağan','TahminUstası','GeceKöylüsü','YayıncıPro'];const words=['KAPLAN','KEDİ','MARTI','FİL','TAVŞAN','ASLAN','BALIK','ZÜRAFA','KARTAL','PENGUEN','KİTAP','MASA','KALEM','BARDAK','ÇİÇEK','GÜNEŞ','YILDIZ','BULUT','DENİZ','ORMAN'];const letters='QRTYUİOPĞÜASDFGĞEWQAZERTYUİOPĞASDFGHJKLŞZXCVBNMÖİUYTREWQWERTYUİOPĞÜĞHJKAPLANMMBVCXZZÇDFGHJKLŞİOPĞÜASZXCVBNMÖİUYTREWQAZERTYUİOPĞÜHJKLŞZXCVBNMÖİUYTGHJKLŞİOPĞÜASDFVBNMÖİUYTREWQAZXCVBNMÖİUYTREWQİOPĞÜASDFGHJKLŞ';
-export default function BilBakalimGame(){const nav=useNavigate();const [screen,setScreen]=useState<'lobby'|'game'|'results'>('lobby'),[cap,setCap]=useState(8),[cat,setCat]=useState('KARIŞIK'),[duration,setDuration]=useState(60),[ready,setReady]=useState(false),[found,setFound]=useState(new Set<string>()),[active,setActive]=useState(0),[scores,setScores]=useState(()=>names.map(()=>0));const grid=useMemo(()=>Array.from({length:14},(_,y)=>Array.from({length:14},(_,x)=>letters[(y*14+x)%letters.length])),[]);const players=names.slice(0,cap);const correct=(w:string)=>{if(found.has(w))return;setFound(new Set(found).add(w));setScores(s=>s.map((v,i)=>i===active?v+w.length*10:v));if(found.size===19)setScreen('results')};return <div className="bb-shell">{screen==='lobby'?<><header className="bb-top"><button onClick={()=>nav('/oyunlar')}>←</button><b>bili🍩</b><h1>💡 BİL BAKALIM</h1><span>💬　🔔</span></header><div className="bb-code">ODA KODU: <b>BB-2048</b>　<button onClick={()=>navigator.clipboard?.writeText('BB-2048')}>▣</button> <button>DAVET ET</button></div><main className="bb-lobby-main"><section className="bb-panel bb-players"><h2>OYUNCULAR　{players.length}/{cap}</h2><div>{players.map((n,i)=><article key={n}><div className="bb-avatar">{n[0]}</div><b>{n}</b><small className={i===0?'host':i<3?'ok':''}>{i===0?'KURUCU':i<3?'HAZIR':'BEKLİYOR'}</small></article>)}</div></section><aside><section className="bb-panel settings"><h2>ODA AYARLARI</h2><label>👥 OYUNCU SAYISI <span><button onClick={()=>setCap(4)} className={cap===4?'sel':''}>4 KİŞİ</button><button onClick={()=>setCap(8)} className={cap===8?'sel':''}>8 KİŞİ</button></span></label><label>▦ KELİME KATEGORİSİ <span className="cats">{['HAYVANLAR','SANATÇILAR','NESNELER','ŞARKI İSİMLERİ','YEMEKLER','KARIŞIK'].map(x=><button className={cat===x?'sel':''} onClick={()=>setCat(x)}>{x}</button>)}</span></label><label>◷ TUR SÜRESİ <span>{[30,45,60,90].map(x=><button className={duration===x?'sel':''} onClick={()=>setDuration(x)}>{x} SN</button>)}</span></label><label>▣ KELİME SAYISI <strong>20 KELİME</strong></label></section><section className="bb-panel bb-chat"><h2>ODA SOHBETİ</h2><p>🐧 <b>NeşeliPenguen:</b> Kategori ne olsun?</p><p>👴 <b>BilgeAdam:</b> Karışık seçelim!</p><input placeholder="Mesajını yaz..."/></section></aside></main><footer className="bb-footer"><button onClick={()=>nav('/oyunlar')}>ODADAN ÇIK</button><strong>{ready?players.length:Math.max(0,players.length-1)}/{players.length} OYUNCU HAZIR<small>HERKES HAZIR OLUNCA OYUN BAŞLAR</small></strong><button className="gold" onClick={()=>{if(ready)setScreen('game');else setReady(true)}}>{ready?'OYUNA GİR':'HAZIR'} 💡</button></footer></>:screen==='game'?<><header className="bb-top"><button onClick={()=>setScreen('lobby')}>←</button><b>bili🍩</b><h1>💡 BİL BAKALIM</h1><span>⚙　↪</span></header><div className="bb-timer">◷ 00:{duration-13}</div><div className="bb-game"><div className="bb-wordbar"><h3>ARANAN KELİMELER {found.size}/20</h3>{words.map(w=><button className={found.has(w)?'found':''} onClick={()=>correct(w)}>{w}{found.has(w)?' ✓':''}</button>)}</div><div className="bb-board">{grid.flatMap((r,y)=>r.map((c,x)=><button key={x+'-'+y} onClick={()=>{if(x===0&&y===5)correct('KAPLAN')}}>{c}</button>))}</div>{players.map((n,i)=><div className={'bb-float p'+i+(active===i?' active':'')}><div className="bb-avatar">{n[0]}</div><b>{n}</b><small>{active===i?'SIRA SENDE':'120 PUAN'}</small></div>)}<div className="bb-status">DOĞRU BULDUKÇA DEVAM ET • HATA YAPARSAN SIRA GEÇER<br/><b>DOĞRU! DEVAM EDEBİLİRSİN</b><button onClick={()=>setActive((active+1)%players.length)}>HATALI SEÇİMİ TEST ET</button></div></div></>:<Results cap={cap} scores={scores} onAgain={()=>{setFound(new Set());setScores(names.map(()=>0));setScreen('lobby')}} onHome={()=>nav('/oyunlar')}/>}</div>}
-function Results({cap,scores,onAgain,onHome}:{cap:number,scores:number[],onAgain:()=>void,onHome:()=>void}){const rows=names.slice(0,cap).map((n,i)=>({n,score:scores[i]+1840-i*170})).sort((a,b)=>b.score-a.score);return <div className="bb-results"><header><b>bili🍩</b><h1>💡 OYUN TAMAMLANDI</h1><h2>BİL BAKALIM — SONUÇLAR</h2></header><div className="podium">{[1,0,2].filter(i=>rows[i]).map(i=><article><div className="bb-avatar">{rows[i].n[0]}</div><h2>{i+1}. {rows[i].n}</h2><b>{rows[i].score} PUAN</b><small>💎 {100-i*10} ELMAS　 XP +{500-i*50}</small></article>)}</div><section className="ranking"><h2>OYUNCU SIRALAMASI</h2>{rows.slice(3).map((r,i)=><p><b>{i+4}</b><span>{r.n}</span><span>{r.score}</span><span>💎 {70-i*10}</span><span>XP +{350-i*50}</span></p>)}</section><div className="result-actions"><div><h3>SEVİYE İLERLEMESİ</h3><b>SEVİYE 68 → 69</b><p>BU OYUNDAN: +500 XP</p></div><button onClick={onHome}>⌂ ANA MENÜ</button><button className="gold" onClick={onAgain}>↻ TEKRAR OYNA</button></div></div>}
+import {FormEvent, PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {api, useAuth} from '../auth/AuthContext';
+import AccountToolbar from '../components/AccountToolbar';
+import {titles} from '../data/titles';
+
+type Player = {
+  userId: string;
+  username: string;
+  avatarUrl?: string;
+  titleId?: string;
+  frameId?: string | null;
+  ready?: boolean;
+  connected?: boolean;
+  seat: number;
+  score?: number;
+  correct?: number;
+  wrong?: number;
+  timeouts?: number;
+  rank?: number;
+  diamonds?: number;
+  xp?: number;
+};
+
+type RoomMessage = {id: string; userId: string; username: string; content: string; createdAt: number};
+type Room = {
+  id: string;
+  code: string;
+  hostUserId: string;
+  status: 'LOBBY' | 'PLAYING' | 'ENDED';
+  capacity: 4 | 8;
+  category: string;
+  turnSeconds: 30 | 45 | 60 | 90;
+  wordCount: 20;
+  countdownEndsAt: number | null;
+  matchId: string | null;
+  players: Player[];
+  messages: RoomMessage[];
+};
+
+type Match = {
+  id: string;
+  status: 'PLAYING' | 'FINISHED';
+  category: string;
+  grid: string[][];
+  words: string[];
+  found: string[];
+  players: Player[];
+  order: string[];
+  activeUserId: string;
+  turnEndsAt: number;
+  turnSeconds: number;
+  turnCount: number;
+  startedAt: number;
+  endedAt: number | null;
+  results: Player[] | null;
+};
+
+type StateResponse = {room: Room | null; match: Match | null};
+const categories = ['HAYVANLAR', 'SANATÇILAR', 'NESNELER', 'ŞARKI İSİMLERİ', 'YEMEKLER', 'KARIŞIK'];
+const durations = [30, 45, 60, 90] as const;
+const resultNumber = (value: number | undefined) => new Intl.NumberFormat('tr-TR').format(value || 0);
+
+function TitleArt({id}: {id?: string}) {
+  if (!id) return null;
+  const title = titles.find(item => item.id === id);
+  return title ? <img className="bb-title-art" src={title.assetPath} alt={`${title.name} unvanı`}/> : null;
+}
+
+function Avatar({player, large = false}: {player: Player; large?: boolean}) {
+  return <div className={`bb-avatar-real${large ? ' large' : ''}`}>
+    {player.avatarUrl ? <img src={player.avatarUrl} alt={`${player.username} profil resmi`}/> : <span>{player.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</span>}
+  </div>;
+}
+
+export default function BilBakalimGame() {
+  const nav = useNavigate();
+  const auth = useAuth();
+  const [room, setRoom] = useState<Room | null>(null);
+  const [match, setMatch] = useState<Match | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [chat, setChat] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const [selection, setSelection] = useState<{start: [number, number]; end: [number, number]} | null>(null);
+  const dragging = useRef(false);
+
+  const fetchState = useCallback(async (createIfMissing = false) => {
+    try {
+      let state = await api<StateResponse>('/game/bil-bakalim/active');
+      if (!state.room && createIfMissing) {
+        await api('/game/bil-bakalim/create', {method: 'POST'});
+        state = await api<StateResponse>('/game/bil-bakalim/active');
+      }
+      setRoom(state.room);
+      setMatch(state.match);
+      if (state.match?.status === 'FINISHED') await auth.refresh();
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Oyun durumu yüklenemedi.');
+    } finally {
+      setLoading(false);
+    }
+  }, [auth]);
+
+  useEffect(() => { void fetchState(true); }, [fetchState]);
+  useEffect(() => {
+    const id = window.setInterval(() => { setNow(Date.now()); void fetchState(false); }, 1000);
+    return () => window.clearInterval(id);
+  }, [fetchState]);
+
+  const me = useMemo(() => room?.players.find(player => player.userId === auth.user?.id) || null, [room, auth.user?.id]);
+  const host = room?.hostUserId === auth.user?.id;
+  const readyCount = room?.players.filter(player => player.ready).length || 0;
+  const countdown = room?.countdownEndsAt ? Math.max(0, Math.ceil((room.countdownEndsAt - now) / 1000)) : 0;
+
+  const changeSettings = async (changes: Record<string, unknown>) => {
+    if (!host || busy) return;
+    setBusy(true);
+    try {
+      const response = await api<{room: Room}>('/game/bil-bakalim/settings', {method: 'POST', body: JSON.stringify(changes)});
+      setRoom(response.room);
+    } catch (err) { setError(err instanceof Error ? err.message : 'Oda ayarları güncellenemedi.'); }
+    finally { setBusy(false); }
+  };
+
+  const toggleReady = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const response = await api<{room: Room}>('/game/bil-bakalim/ready', {method: 'POST'});
+      setRoom(response.room);
+    } catch (err) { setError(err instanceof Error ? err.message : 'Hazır durumu güncellenemedi.'); }
+    finally { setBusy(false); }
+  };
+
+  const sendChat = async (event: FormEvent) => {
+    event.preventDefault();
+    const content = chat.trim();
+    if (!content || busy) return;
+    setBusy(true);
+    try {
+      const response = await api<{room: Room}>('/game/bil-bakalim/chat', {method: 'POST', body: JSON.stringify({content})});
+      setRoom(response.room);
+      setChat('');
+    } catch (err) { setError(err instanceof Error ? err.message : 'Mesaj gönderilemedi.'); }
+    finally { setBusy(false); }
+  };
+
+  const invite = async () => {
+    if (!host || busy) return;
+    setBusy(true);
+    try {
+      await api('/game/bil-bakalim/invite', {method: 'POST'});
+      setError('Davet genel lobiye gönderildi.');
+    } catch (err) { setError(err instanceof Error ? err.message : 'Davet gönderilemedi.'); }
+    finally { setBusy(false); }
+  };
+
+  const copyCode = async () => {
+    if (!room?.code) return;
+    try { await navigator.clipboard.writeText(room.code); setError('Oda kodu kopyalandı.'); }
+    catch { setError('Oda kodu kopyalanamadı.'); }
+  };
+
+  const leave = async () => {
+    await api('/game/bil-bakalim/leave', {method: 'POST'}).catch(() => undefined);
+    nav('/oyunlar');
+  };
+
+  const submitSelection = async () => {
+    if (!selection || !match || match.activeUserId !== auth.user?.id || match.status !== 'PLAYING' || busy) return;
+    setBusy(true);
+    try {
+      const response = await api<{match: Match; result: {ok?: boolean; error?: string; alreadyFound?: boolean}; user?: unknown}>('/game/bil-bakalim/select', {
+        method: 'POST',
+        body: JSON.stringify({start: selection.start, end: selection.end, requestId: crypto.randomUUID()}),
+      });
+      setMatch(response.match);
+      if (response.result.alreadyFound) setError('Bu kelime daha önce bulundu.');
+      else if (!response.result.ok) setError(response.result.error || 'Hatalı seçim — sıra geçiyor.');
+      else setError('DOĞRU! DEVAM EDEBİLİRSİN');
+      if (response.match.status === 'FINISHED') await auth.refresh();
+    } catch (err) { setError(err instanceof Error ? err.message : 'Seçim doğrulanamadı.'); }
+    finally { setSelection(null); dragging.current = false; setBusy(false); }
+  };
+
+  const startCell = (x: number, y: number, event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!match || match.activeUserId !== auth.user?.id || match.status !== 'PLAYING') return;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    dragging.current = true;
+    setSelection({start: [x, y], end: [x, y]});
+  };
+  const enterCell = (x: number, y: number) => {
+    if (!dragging.current) return;
+    setSelection(current => current ? {...current, end: [x, y]} : current);
+  };
+
+  if (loading) return <div className="bb-shell"><div className="bb-centered-status">Bil Bakalım yükleniyor...</div></div>;
+  if (!room) return <div className="bb-shell"><div className="bb-centered-status">Oda oluşturulamadı.{error && <small>{error}</small>}</div></div>;
+
+  if (match?.status === 'PLAYING') {
+    const active = match.players.find(player => player.userId === match.activeUserId);
+    const remaining = Math.max(0, Math.ceil((match.turnEndsAt - now) / 1000));
+    const gridSize = match.grid.length;
+    const selectedCells = new Set<string>();
+    if (selection) {
+      const dx = Math.sign(selection.end[0] - selection.start[0]);
+      const dy = Math.sign(selection.end[1] - selection.start[1]);
+      const ax = Math.abs(selection.end[0] - selection.start[0]);
+      const ay = Math.abs(selection.end[1] - selection.start[1]);
+      if (ax === 0 || ay === 0 || ax === ay) {
+        const count = Math.max(ax, ay) + 1;
+        for (let index = 0; index < count; index += 1) selectedCells.add(`${selection.start[0] + dx * index}-${selection.start[1] + dy * index}`);
+      }
+    }
+    return <div className="bb-shell bb-game-screen">
+      <header className="bb-game-header">
+        <button className="bb-back" onClick={() => void leave()} aria-label="Oyundan çık">←</button>
+        <img src="/assets/bilio-logo.png" alt="Bilio"/>
+        <div className="bb-game-title"><span>💡</span><h1>BİL BAKALIM</h1><strong>00:{String(remaining).padStart(2, '0')}</strong></div>
+        <AccountToolbar/>
+      </header>
+      <main className="bb-game-stage">
+        <section className="bb-wordbar-real"><h2>ARANAN KELİMELER {match.found.length}/20</h2><div>{match.words.map(word => <span key={word} className={match.found.includes(word) ? 'found' : ''}>{word}{match.found.includes(word) ? ' ✓' : ''}</span>)}</div></section>
+        <div className="bb-board-real" style={{gridTemplateColumns: `repeat(${gridSize}, 1fr)`}} onPointerUp={() => void submitSelection()} onPointerCancel={() => {dragging.current = false; setSelection(null);}}>
+          {match.grid.flatMap((row, y) => row.map((letter, x) => <button
+            key={`${x}-${y}`}
+            className={selectedCells.has(`${x}-${y}`) ? 'selected' : ''}
+            onPointerDown={event => startCell(x, y, event)}
+            onPointerEnter={() => enterCell(x, y)}
+            disabled={match.activeUserId !== auth.user?.id || busy}
+            aria-label={`${x + 1}. sütun ${y + 1}. satır ${letter}`}
+          >{letter}</button>))}
+        </div>
+        <div className="bb-player-ring">{match.players.map(player => {const visualSeat = match.players.length === 4 ? [0, 2, 4, 6][player.seat] : player.seat; return <article key={player.userId} className={`bb-ring-player bb-seat-${visualSeat}${player.userId === match.activeUserId ? ' active' : ''}`}>
+          <Avatar player={player}/><b>{player.username}</b><TitleArt id={player.titleId}/><small>{player.userId === match.activeUserId ? 'SIRA SENDE' : `${resultNumber(player.score)} PUAN`}</small>
+        </article>})}</div>
+        <aside className="bb-game-meta"><strong>KALAN {20 - match.found.length} KELİME</strong><span>TUR {match.turnCount}</span></aside>
+        <footer className="bb-game-status"><span>DOĞRU BULDUKÇA DEVAM ET • HATA YAPARSAN SIRA GEÇER</span><b>{error || (active ? `SIRADAKİ: ${active.username}` : '')}</b></footer>
+      </main>
+    </div>;
+  }
+
+  if (match?.status === 'FINISHED' && match.results) {
+    const results = match.results;
+    const top = [results[1], results[0], results[2]].filter(Boolean);
+    const mine = results.find(player => player.userId === auth.user?.id);
+    return <div className="bb-shell bb-results-screen">
+      <header className="bb-results-title"><img src="/assets/bilio-logo.png" alt="Bilio"/><div><h1>💡 OYUN TAMAMLANDI</h1><h2>BİL BAKALIM — SONUÇLAR</h2></div></header>
+      <section className="bb-results-podium">{top.map(player => <article key={player.userId} className={`place-${player.rank}`}><span>{player.rank}.</span><Avatar player={player} large/><b>{player.username}</b><strong>{resultNumber(player.score)} PUAN</strong><small>{player.diamonds} ELMAS · +{player.xp} XP</small></article>)}</section>
+      <section className="bb-results-table"><header><span>SIRA</span><span>OYUNCU</span><span>PUAN</span><span>ELMAS</span><span>KAZANILAN XP</span></header>{results.slice(3).map(player => <div key={player.userId}><span>{player.rank}</span><span>{player.username}</span><span>{resultNumber(player.score)}</span><span>{player.diamonds}</span><span>+{player.xp} XP</span></div>)}</section>
+      <footer className="bb-results-footer"><div><b>MAÇ ÖZETİ</b><span>Bulunan kelime: {match.found.length}/20</span>{mine && <span>Doğru: {mine.correct || 0} · Hatalı: {mine.wrong || 0} · Süre dolması: {mine.timeouts || 0}</span>}</div><button onClick={() => nav('/oyunlar')}>ANA MENÜ</button><button className="gold" onClick={async () => {await api('/game/bil-bakalim/leave', {method: 'POST'}); await api('/game/bil-bakalim/create', {method: 'POST'}); setMatch(null); await fetchState(false);}}>TEKRAR OYNA</button></footer>
+    </div>;
+  }
+
+  const slots = Array.from({length: room.capacity}, (_, seat) => room.players.find(player => player.seat === seat) || null);
+  return <div className="bb-shell bb-lobby-screen">
+    <header className="bb-lobby-header">
+      <div className="bb-brand-side"><button className="bb-back" onClick={() => void leave()} aria-label="Oyunlara dön">←</button><img src="/assets/bilio-logo.png" alt="Bilio"/></div>
+      <div className="bb-lobby-heading"><h1>💡 BİL BAKALIM</h1><div><span>ODA KODU: <b>{room.code}</b></span><button onClick={() => void copyCode()} aria-label="Oda kodunu kopyala">KOPYALA</button><button onClick={() => void invite()} disabled={!host || busy}>DAVET ET</button></div></div>
+      <AccountToolbar/>
+    </header>
+    <main className="bb-lobby-main-real">
+      <section className="bb-room-players-panel"><h2>OYUNCULAR <b>{room.players.length}/{room.capacity}</b></h2><div className="bb-room-grid">{slots.map((player, seat) => player ? <article key={player.userId} className="bb-room-player-card"><Avatar player={player} large/><b>{player.username}</b><TitleArt id={player.titleId}/><small className={room.hostUserId === player.userId ? 'host' : player.ready ? 'ready' : ''}>{room.hostUserId === player.userId ? 'KURUCU' : player.ready ? 'HAZIR' : 'BEKLİYOR'}</small></article> : <article key={`empty-${seat}`} className="bb-room-player-card empty"><div className="bb-empty-avatar">+</div><span>Oyuncu bekleniyor</span></article>)}</div></section>
+      <aside className="bb-room-side">
+        <section className="bb-settings-panel"><h2>ODA AYARLARI</h2><div className="bb-setting-row"><b>OYUNCU SAYISI</b><span>{[4, 8].map(value => <button key={value} disabled={!host || busy || value < room.players.length} className={room.capacity === value ? 'selected' : ''} onClick={() => void changeSettings({capacity: value})}>{value} KİŞİ</button>)}</span></div><div className="bb-setting-row categories"><b>KELİME KATEGORİSİ</b><span>{categories.map(value => <button key={value} disabled={!host || busy} className={room.category === value ? 'selected' : ''} onClick={() => void changeSettings({category: value})}>{value}</button>)}</span></div><div className="bb-setting-row"><b>TUR SÜRESİ</b><span>{durations.map(value => <button key={value} disabled={!host || busy} className={room.turnSeconds === value ? 'selected' : ''} onClick={() => void changeSettings({turnSeconds: value})}>{value} SN</button>)}</span></div><div className="bb-setting-row readonly"><b>KELİME SAYISI</b><strong>20 KELİME</strong></div></section>
+        <section className="bb-room-chat"><h2>ODA SOHBETİ</h2><div className="bb-room-chat-history">{room.messages.length === 0 ? <div className="bb-chat-empty">Henüz mesaj bulunmuyor.</div> : room.messages.map(message => <p key={message.id}><b>{message.username}</b><span>{message.content}</span></p>)}</div><form onSubmit={sendChat}><input maxLength={500} placeholder="Mesajını yaz..." value={chat} onChange={event => setChat(event.target.value)} disabled={busy}/><button className="bb-donut-send" aria-label="Mesaj gönder" disabled={!chat.trim() || busy}><img src="/assets/nav-donut.png" alt=""/></button></form></section>
+      </aside>
+    </main>
+    <footer className="bb-lobby-footer"><button onClick={() => void leave()}>ODADAN ÇIK</button><div><strong>{room.players.length}/{room.capacity} OYUNCU ODADA</strong><span>{countdown > 0 ? `OYUN ${countdown} SANİYE SONRA BAŞLIYOR` : room.players.length < room.capacity ? 'OYUNUN BAŞLAMASI İÇİN OYUNCULAR BEKLENİYOR' : `${readyCount}/${room.capacity} OYUNCU HAZIR`}</span></div><button className="gold" onClick={() => void toggleReady()} disabled={busy}>{me?.ready ? 'HAZIRLIĞI İPTAL ET' : 'HAZIR'}</button></footer>
+    {error && <div className="bb-toast" role="status">{error}</div>}
+  </div>;
+}

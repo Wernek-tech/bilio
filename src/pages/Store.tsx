@@ -1,3 +1,86 @@
-import {useEffect,useState} from 'react';import SiteShell from '../components/SiteShell';import {api,useAuth} from '../auth/AuthContext';import AuthModal from '../auth/AuthModal';
-type Product={id:string;category:string;name:string;price:number;currency:'gold'|'diamonds';preview:string;assetPath?:string;owned:boolean;equipped:boolean;requiredLevel?:number;consumable?:boolean;quantity?:number;unlockOnly?:boolean};const cats=['EMOJİLER','UNVANLAR','ÇERÇEVELER','ROZETLER','HEDİYELER','TAKVİYELER'];
-export default function Store(){const auth=useAuth(),[cat,setCat]=useState('EMOJİLER'),[items,setItems]=useState<Product[]>([]),[pick,setPick]=useState<Product|null>(null),[busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[authOpen,setAuthOpen]=useState(false);const load=()=>api<{items:Product[]}>('/store/products?category='+encodeURIComponent(cat)).then(x=>setItems(x.items));useEffect(()=>{void load()},[cat,auth.user?.id]);const buy=async()=>{if(!pick)return;if(!auth.user){setPick(null);setAuthOpen(true);return}setBusy(true);setMsg('');try{const r=await api<{user:any}>('/store/purchase',{method:'POST',body:JSON.stringify({productId:pick.id,requestId:crypto.randomUUID()})});auth.patch({gold:r.user.gold,diamonds:r.user.diamonds});setMsg('Satın alma işlemi tamamlandı.');setPick(null);await load()}catch(e){setMsg(e instanceof Error?e.message:'Satın alma işlemi tamamlanamadı.')}finally{setBusy(false)}};return <SiteShell><div className="page-body store-page"><h1>MAĞAZA</h1><div className="store-cats">{cats.map(c=><button key={c} className={cat===c?'active':''} onClick={()=>setCat(c)}>{c}</button>)}</div>{msg&&<div className="store-message" role="status">{msg}</div>}<div className="product-grid">{items.map(p=><article className="product-card" key={p.id}><div className="product-preview">{p.assetPath?<img src={p.assetPath} alt={p.name}/>:<span>{p.preview}</span>}</div><b>{p.name}</b>{p.requiredLevel&&<small>Seviye {p.requiredLevel}</small>}<div className="product-action">{p.owned&&!p.consumable?<button disabled={p.equipped||p.category==='ROZETLER'} onClick={async()=>{if(p.category==='ROZETLER')return;if(!auth.user){setAuthOpen(true);return}await api('/store/equip',{method:'POST',body:JSON.stringify({productId:p.id})});await load()}}>{p.category==='ROZETLER'?'MEVCUT':p.equipped?'KUŞANILDI':'KUŞAN'}</button>:p.unlockOnly?<button disabled>{p.requiredLevel&&auth.user&&auth.user.level<p.requiredLevel?'SEVİYE GEREKLİ':'KİLİTLİ'}</button>:<button onClick={()=>setPick(p)}>{new Intl.NumberFormat('tr-TR').format(p.price)} {p.currency==='gold'?'ALTIN':'ELMAS'} · SATIN AL</button>}</div></article>)}</div></div>{pick&&<div className="modal-back"><div className="confirm-modal"><h2>Satın alma onayı</h2><p>{pick.name} öğesini {new Intl.NumberFormat('tr-TR').format(pick.price)} {pick.currency==='gold'?'altın':'elmas'} karşılığında satın almak istiyor musunuz?</p><div><button onClick={()=>setPick(null)}>İPTAL</button><button disabled={busy} onClick={()=>void buy()}>SATIN AL</button></div></div></div>}{authOpen&&<AuthModal onClose={()=>setAuthOpen(false)}/>}</SiteShell>}
+import {useEffect, useState} from 'react';
+import SiteShell from '../components/SiteShell';
+import {api, useAuth} from '../auth/AuthContext';
+import AuthModal from '../auth/AuthModal';
+
+type Product = {
+  id: string; category: string; name: string; price: number; currency: 'gold' | 'diamonds'; preview: string;
+  assetPath?: string; owned: boolean; equipped: boolean; requiredLevel?: number; consumable?: boolean;
+  quantity?: number; unlockOnly?: boolean; requirement?: string;
+};
+const categories = ['EMOJİLER', 'UNVANLAR', 'ÇERÇEVELER', 'ROZETLER', 'HEDİYELER', 'TAKVİYELER'];
+const format = (value: number) => new Intl.NumberFormat('tr-TR').format(value);
+
+export default function Store() {
+  const auth = useAuth();
+  const [category, setCategory] = useState('EMOJİLER');
+  const [items, setItems] = useState<Product[]>([]);
+  const [selected, setSelected] = useState<Product | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const [authOpen, setAuthOpen] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const response = await api<{items: Product[]}>(`/store/products?category=${encodeURIComponent(category)}`);
+      setItems(response.items);
+    } catch (err) { setMessage(err instanceof Error ? err.message : 'Mağaza yüklenemedi.'); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { void load(); }, [category, auth.user?.id]);
+
+  const purchase = async () => {
+    if (!selected || busy) return;
+    if (!auth.user) { setSelected(null); setAuthOpen(true); return; }
+    setBusy(true); setMessage('');
+    try {
+      const response = await api<{user: {gold: number; diamonds: number}}>('/store/purchase', {
+        method: 'POST', body: JSON.stringify({productId: selected.id, requestId: crypto.randomUUID()}),
+      });
+      auth.patch({gold: response.user.gold, diamonds: response.user.diamonds});
+      setMessage('Satın alma işlemi tamamlandı.');
+      setSelected(null);
+      await load();
+    } catch (err) { setMessage(err instanceof Error ? err.message : 'Satın alma işlemi tamamlanamadı.'); }
+    finally { setBusy(false); }
+  };
+
+  const equip = async (product: Product) => {
+    if (!auth.user) { setAuthOpen(true); return; }
+    if (busy || product.equipped) return;
+    setBusy(true); setMessage('');
+    try {
+      await api('/store/equip', {method: 'POST', body: JSON.stringify({productId: product.id})});
+      await auth.refresh();
+      await load();
+      setMessage(`${product.name} kullanıma alındı.`);
+    } catch (err) { setMessage(err instanceof Error ? err.message : 'Öğe kullanıma alınamadı.'); }
+    finally { setBusy(false); }
+  };
+
+  const action = (product: Product) => {
+    if (product.category === 'ROZETLER') return <button disabled>{product.owned ? 'MEVCUT' : 'KİLİTLİ'}</button>;
+    if (product.unlockOnly) {
+      if (!product.owned) return <button disabled>{product.requiredLevel ? 'SEVİYE GEREKLİ' : 'KİLİTLİ'}</button>;
+      return <button disabled={product.equipped || busy} onClick={() => void equip(product)}>{product.equipped ? 'KULLANILIYOR' : 'KUŞAN'}</button>;
+    }
+    if (product.owned && !product.consumable) return <button disabled={product.equipped || busy} onClick={() => void equip(product)}>{product.equipped ? 'KULLANILIYOR' : product.category === 'ÇERÇEVELER' ? 'KUŞAN' : 'MEVCUT'}</button>;
+    return <button disabled={busy} onClick={() => setSelected(product)}>{format(product.price)} {product.currency === 'gold' ? 'ALTIN' : 'ELMAS'} · SATIN AL</button>;
+  };
+
+  return <SiteShell><div className="page-body store-page">
+    <h1>MAĞAZA</h1>
+    <div className="store-cats" role="tablist" aria-label="Mağaza kategorileri">{categories.map(item => <button key={item} role="tab" aria-selected={category === item} className={category === item ? 'active' : ''} onClick={() => {setCategory(item); setMessage('');}}>{item}</button>)}</div>
+    {message && <div className="store-message" role="status">{message}</div>}
+    {loading ? <div className="store-empty">Mağaza yükleniyor...</div> : items.length === 0 ? <div className="store-empty"><b>Bu kategoride şu anda öğe bulunmuyor.</b><span>Daha sonra yeniden kontrol edebilirsin.</span></div> : <div className="product-grid">{items.map(product => <article className="product-card" key={product.id}>
+      <div className="product-preview">{product.assetPath ? <img src={product.assetPath} alt={product.name}/> : <span aria-hidden="true">{product.preview}</span>}</div>
+      <b>{product.name}</b>
+      <small>{product.requiredLevel ? `Seviye ${product.requiredLevel}` : product.requirement || (product.quantity ? `Adet: ${product.quantity}` : ' ')}</small>
+      <div className="product-action">{action(product)}</div>
+    </article>)}</div>}
+  </div>
+  {selected && <div className="modal-back" onMouseDown={event => {if (event.target === event.currentTarget && !busy) setSelected(null);}}><div className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="purchase-title"><h2 id="purchase-title">Satın alma onayı</h2><p><b>{selected.name}</b> öğesini {format(selected.price)} {selected.currency === 'gold' ? 'altın' : 'elmas'} karşılığında satın almak istiyor musunuz?</p><div><button onClick={() => setSelected(null)} disabled={busy}>İPTAL</button><button onClick={() => void purchase()} disabled={busy}>{busy ? 'BEKLEYİN…' : 'SATIN AL'}</button></div></div></div>}
+  {authOpen && <AuthModal onClose={() => setAuthOpen(false)}/>}</SiteShell>;
+}
