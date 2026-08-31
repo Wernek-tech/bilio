@@ -211,6 +211,36 @@
       "avatarUrl": "",
       "content": "hello",
       "createdAt": "2026-08-31T14:45:53.700Z"
+    },
+    {
+      "id": "4bc77084-ccb1-45c2-adf2-b3b134415208",
+      "kind": "message",
+      "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
+      "username": "lotus",
+      "titleId": "title-1",
+      "avatarUrl": "",
+      "content": "test mesajı - fix doğrulama",
+      "createdAt": "2026-08-31T15:53:24.434Z"
+    },
+    {
+      "id": "6bf67190-a93f-40b8-aad0-76333741fc99",
+      "kind": "message",
+      "userId": "c4cd32b2-0602-45ca-8839-c0062e33847f",
+      "username": "BilioQueen",
+      "titleId": "title-1",
+      "avatarUrl": "",
+      "content": "hellu",
+      "createdAt": "2026-08-31T15:54:24.935Z"
+    },
+    {
+      "id": "5c12ca4c-25c5-465d-9f1f-c9eef7c8b9d1",
+      "kind": "message",
+      "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
+      "username": "lotus",
+      "titleId": "title-1",
+      "avatarUrl": "",
+      "content": "helü",
+      "createdAt": "2026-08-31T15:54:29.903Z"
     }
   ],
   "lobbyInvites": [
