@@ -1,26 +1,7 @@
-import {FormEvent,useRef,useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {initialLobbyMessages} from '../data/lobbyMessages';
-import {useAuth} from '../auth/AuthContext';
-import AuthModal from '../auth/AuthModal';
-import {titles} from '../data/titles';
-type Spot={label:string;to?:string;x:number;y:number;w:number;h:number;action?:'logout'};
-const spots:Spot[]=[
-{label:'Oyunlar',to:'/oyunlar',x:29,y:226,w:280,h:58},{label:'Lobi',to:'/lobi',x:29,y:300,w:280,h:59},{label:'Liderlik tablosu',to:'/liderlik',x:29,y:374,w:280,h:59},{label:'Mağaza',to:'/magaza',x:29,y:448,w:280,h:59},{label:'Profil',to:'/profil',x:29,y:522,w:280,h:59},{label:'Çıkış yap',x:29,y:845,w:280,h:52,action:'logout'},
-{label:'Mesajlar',to:'/mesajlar',x:1491,y:28,w:52,h:52},{label:'Bildirimler',to:'/bildirimler',x:1558,y:28,w:53,h:52}];
-const pct=(v:number,total:number)=>`${v/total*100}%`;
-export default function Lobby(){
- const nav=useNavigate(); const auth=useAuth(); const [authOpen,setAuthOpen]=useState(false); const [text,setText]=useState(''); const [sent,setSent]=useState<string[]>([]); const input=useRef<HTMLTextAreaElement>(null);
- const click=(s:Spot)=>{if(s.action==='logout'){console.info('Çıkış işleyicisi: authentication entegrasyonu bekleniyor.');return;} if(s.to)nav(s.to)};
- const send=(e?:FormEvent)=>{e?.preventDefault();if(!auth.user){setAuthOpen(true);return}const value=text.trim();if(!value)return;setSent(v=>[...v,value]);setText('');requestAnimationFrame(()=>input.current?.focus())};
- return <main className="screen"><div className="stage">
-  <img src="/assets/lobi-gorunumu.png" alt="Bilio lobi ekranı" draggable={false}/>
-  <div className="hotspots">{spots.map(s=><button key={s.label} type="button" aria-label={s.label} onClick={()=>click(s)} style={{left:pct(s.x,1672),top:pct(s.y,940),width:pct(s.w,1672),height:pct(s.h,940)}}/>)}</div>
-  <div className="lobby-interaction" aria-label="Lobi sohbeti">
-   <div className="sr-only" aria-live="polite">{initialLobbyMessages.map(m=><span key={m.id}>{m.username}, {m.title}: {m.message}, {m.time}. </span>)}{sent.map((m,i)=><span key={i}>Sen: {m}. </span>)}</div>
-   {sent.length>0&&<div className="sent-messages">{sent.slice(-3).map((m,i)=><div className="sent" key={i}><b>Sen</b><span>{m}</span><time>{new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</time></div>)}</div>}
-   <form onSubmit={send} className="composer"><textarea ref={input} aria-label="Mesajını yaz" placeholder="Mesajını yaz..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}}/><button type="submit" aria-label="Gönder">GÖNDER <span>➤</span></button></form>
-  </div>
-  {auth.user&&<div className="lobby-current-title"><img src={(titles.find(t=>t.id===auth.user?.selectedTitleId)||titles[0]).assetPath} alt="Seçili unvan"/></div>}
- </div>{authOpen&&<AuthModal onClose={()=>setAuthOpen(false)}/>}</main>
-}
+import {FormEvent,useEffect,useRef,useState} from 'react';
+import SiteShell from '../components/SiteShell';import {api,useAuth} from '../auth/AuthContext';import AuthModal from '../auth/AuthModal';import {titles} from '../data/titles';
+type Msg={id:string;kind:'message'|'invite';username:string;userId?:string;content?:string;createdAt:string;titleId?:string;avatarUrl?:string;invite?:{game:string;roomCode:string;players:number;max:number;expiresAt:number}};
+export default function Lobby(){const auth=useAuth(),[items,setItems]=useState<Msg[]>([]),[text,setText]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState(''),[authOpen,setAuthOpen]=useState(false),bottom=useRef<HTMLDivElement>(null);
+ const load=async()=>{try{setItems((await api<{items:Msg[]}>('/lobby/messages?limit=100')).items)}catch{}};useEffect(()=>{void load();const es=new EventSource('/api/lobby/events');es.onmessage=e=>{const d=JSON.parse(e.data);if(d.type==='lobby-item')setItems(v=>v.some(x=>x.id===d.item.id)?v:[...v,d.item]);};return()=>es.close()},[]);useEffect(()=>bottom.current?.scrollIntoView({behavior:'smooth'}),[items.length]);
+ const send=async(e?:FormEvent)=>{e?.preventDefault();if(!auth.user){setAuthOpen(true);return}const v=text.trim();if(!v||busy)return;setBusy(true);setErr('');try{await api('/lobby/messages',{method:'POST',body:JSON.stringify({content:v})});setText('')}catch(x){setErr(x instanceof Error?x.message:'Mesaj gönderilemedi. Lütfen tekrar deneyin.')}finally{setBusy(false)}};
+ return <SiteShell><div className="page-body lobby-page"><section className="lobby-panel" aria-label="Lobi sohbeti"><div className="lobby-scroll">{items.length===0?<div className="empty-state"><b>Henüz mesaj bulunmuyor.</b><span>İlk mesajı sen gönderebilirsin.</span></div>:items.map(m=>m.kind==='invite'?<article className="invite-card" key={m.id}><div><b>{m.username}, {m.invite?.game} odasına oyuncu davet ediyor.</b><span>{m.invite?.players}/{m.invite?.max} oyuncu</span></div><button onClick={async()=>{try{if(!auth.user){setAuthOpen(true);return}await api('/lobby/invitations/join',{method:'POST',body:JSON.stringify({inviteId:m.id})});location.href=m.invite?.game==='VAMPİR KÖYLÜ'?'/oyun/vampir-koylu':'/oyun/bil-bakalim'}catch(e){setErr(e instanceof Error?e.message:'Odaya katılınamadı.')}}}>ODAYA KATIL</button></article>:<article className="chat-row" key={m.id}><div className="chat-avatar">{m.avatarUrl?<img src={m.avatarUrl} alt=""/>:m.username.slice(0,1).toLocaleUpperCase('tr-TR')}</div><div className="chat-main"><div className="chat-meta"><b>{m.username}</b>{m.titleId&&<img src={(titles.find(t=>t.id===m.titleId)||titles[0]).assetPath} alt="Kuşanılmış unvan"/>}<time>{new Date(m.createdAt).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</time></div><p>{m.content}</p></div></article>)}<div ref={bottom}/></div><form className="lobby-composer" onSubmit={send}><input aria-label="Mesajını yaz" maxLength={500} placeholder="Mesajını yaz..." value={text} onChange={e=>setText(e.target.value)} disabled={busy}/><button className="donut-send" aria-label="Mesaj gönder" disabled={busy||!text.trim()}><img src="/assets/nav-donut.png" alt=""/></button></form>{err&&<div className="inline-error" role="status">{err}</div>}</section>{!auth.user&&<div className="guest-note">Lobi sohbetine katılmak için kayıt olmanız veya giriş yapmanız gerekiyor.</div>}</div>{authOpen&&<AuthModal onClose={()=>setAuthOpen(false)}/>}</SiteShell>}

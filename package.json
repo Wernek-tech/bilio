@@ -11,7 +11,8 @@
     "typecheck": "tsc -b --pretty false",
     "api": "node server/auth-server.mjs",
     "dev:all": "echo \"Terminal 1: npm run api | Terminal 2: npm run dev\"",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "migrate": "node server/migrate.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

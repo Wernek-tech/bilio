@@ -1,26 +1,3 @@
-import {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-
-type Box={x:number;y:number;w:number;h:number};
-const nav:(readonly [string,string,Box])[]=[
- ['Oyunlar','/oyunlar',{x:22,y:312,w:380,h:82}],['Lobi','/lobi',{x:22,y:413,w:380,h:82}],
- ['Liderlik tablosu','/liderlik',{x:22,y:514,w:380,h:82}],['Mağaza','/magaza',{x:22,y:615,w:380,h:82}],
- ['Profil','/profil',{x:22,y:710,w:380,h:82}],['Çıkış yap','/',{x:22,y:846,w:380,h:60}],
- ['Mesajlar','/mesajlar',{x:1457,y:23,w:66,h:66}],['Bildirimler','/bildirimler',{x:1545,y:23,w:66,h:66}],
-] as const;
-const categories:(readonly [string,Box])[]=[
- ['Emojiler',{x:449,y:114,w:175,h:68}],['Unvanlar',{x:636,y:114,w:174,h:68}],['Çerçeveler',{x:824,y:114,w:182,h:68}],
- ['Rozetler',{x:1020,y:114,w:177,h:68}],['Hediyeler',{x:1210,y:114,w:190,h:68}],['Takviyeler',{x:1413,y:114,w:196,h:68}],
-] as const;
-const pct=(n:number,d:number)=>`${n/d*100}%`;
-export default function Store(){
- const go=useNavigate(); const [active,setActive]=useState('Emojiler');
- return <main className="screen"><section className="stage stage-store" aria-label="Bilio mağaza ekranı">
-   <img src="/references/magaza-referans.png" alt="" draggable={false}/>
-   <div className="store-empty" aria-hidden="true"/>
-   <div className="hotspots">
-    {nav.map(([label,path,b])=><button key={label} aria-label={label} onClick={()=>go(path)} style={{left:pct(b.x,1672),top:pct(b.y,941),width:pct(b.w,1672),height:pct(b.h,941)}}/>)}
-    {categories.map(([label,b])=><button key={label} aria-label={`${label} kategorisi`} aria-pressed={active===label} onClick={()=>setActive(label)} className={active===label?'category-hot active':''} style={{left:pct(b.x,1672),top:pct(b.y,941),width:pct(b.w,1672),height:pct(b.h,941)}}/>)}
-   </div>
- </section></main>
-}
+import {useEffect,useState} from 'react';import SiteShell from '../components/SiteShell';import {api,useAuth} from '../auth/AuthContext';import AuthModal from '../auth/AuthModal';
+type Product={id:string;category:string;name:string;price:number;currency:'gold'|'diamonds';preview:string;assetPath?:string;owned:boolean;equipped:boolean;requiredLevel?:number;consumable?:boolean;quantity?:number;unlockOnly?:boolean};const cats=['EMOJİLER','UNVANLAR','ÇERÇEVELER','ROZETLER','HEDİYELER','TAKVİYELER'];
+export default function Store(){const auth=useAuth(),[cat,setCat]=useState('EMOJİLER'),[items,setItems]=useState<Product[]>([]),[pick,setPick]=useState<Product|null>(null),[busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[authOpen,setAuthOpen]=useState(false);const load=()=>api<{items:Product[]}>('/store/products?category='+encodeURIComponent(cat)).then(x=>setItems(x.items));useEffect(()=>{void load()},[cat,auth.user?.id]);const buy=async()=>{if(!pick)return;if(!auth.user){setPick(null);setAuthOpen(true);return}setBusy(true);setMsg('');try{const r=await api<{user:any}>('/store/purchase',{method:'POST',body:JSON.stringify({productId:pick.id,requestId:crypto.randomUUID()})});auth.patch({gold:r.user.gold,diamonds:r.user.diamonds});setMsg('Satın alma işlemi tamamlandı.');setPick(null);await load()}catch(e){setMsg(e instanceof Error?e.message:'Satın alma işlemi tamamlanamadı.')}finally{setBusy(false)}};return <SiteShell><div className="page-body store-page"><h1>MAĞAZA</h1><div className="store-cats">{cats.map(c=><button key={c} className={cat===c?'active':''} onClick={()=>setCat(c)}>{c}</button>)}</div>{msg&&<div className="store-message" role="status">{msg}</div>}<div className="product-grid">{items.map(p=><article className="product-card" key={p.id}><div className="product-preview">{p.assetPath?<img src={p.assetPath} alt={p.name}/>:<span>{p.preview}</span>}</div><b>{p.name}</b>{p.requiredLevel&&<small>Seviye {p.requiredLevel}</small>}<div className="product-action">{p.owned&&!p.consumable?<button disabled={p.equipped||p.category==='ROZETLER'} onClick={async()=>{if(p.category==='ROZETLER')return;if(!auth.user){setAuthOpen(true);return}await api('/store/equip',{method:'POST',body:JSON.stringify({productId:p.id})});await load()}}>{p.category==='ROZETLER'?'MEVCUT':p.equipped?'KUŞANILDI':'KUŞAN'}</button>:p.unlockOnly?<button disabled>{p.requiredLevel&&auth.user&&auth.user.level<p.requiredLevel?'SEVİYE GEREKLİ':'KİLİTLİ'}</button>:<button onClick={()=>setPick(p)}>{new Intl.NumberFormat('tr-TR').format(p.price)} {p.currency==='gold'?'ALTIN':'ELMAS'} · SATIN AL</button>}</div></article>)}</div></div>{pick&&<div className="modal-back"><div className="confirm-modal"><h2>Satın alma onayı</h2><p>{pick.name} öğesini {new Intl.NumberFormat('tr-TR').format(pick.price)} {pick.currency==='gold'?'altın':'elmas'} karşılığında satın almak istiyor musunuz?</p><div><button onClick={()=>setPick(null)}>İPTAL</button><button disabled={busy} onClick={()=>void buy()}>SATIN AL</button></div></div></div>}{authOpen&&<AuthModal onClose={()=>setAuthOpen(false)}/>}</SiteShell>}
