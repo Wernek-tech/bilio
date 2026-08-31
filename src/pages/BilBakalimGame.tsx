@@ -93,6 +93,7 @@ export default function BilBakalimGame() {
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [selection, setSelection] = useState<{start: [number, number]; end: [number, number]} | null>(null);
+  const [confirmedFound, setConfirmedFound] = useState<string[]>([]);
   const dragging = useRef(false);
 
   const fetchState = useCallback(async (createIfMissing = false) => {
@@ -103,7 +104,12 @@ export default function BilBakalimGame() {
         state = await api<StateResponse>('/game/bil-bakalim/active');
       }
       setRoom(state.room);
-      setMatch(state.match);
+      setMatch(current => {
+        if (!state.match) return null;
+        if (!current || current.id !== state.match.id) return state.match;
+        return {...state.match, found: [...new Set([...state.match.found, ...current.found])]} as Match;
+      });
+      if (state.match) setConfirmedFound(current => [...new Set([...current, ...state.match!.found])]);
       if (state.match?.status === 'FINISHED') await auth.refresh();
       setError('');
     } catch (err) {
@@ -166,14 +172,7 @@ export default function BilBakalimGame() {
     } catch (err) { setError(err instanceof Error ? err.message : 'Davet gönderilemedi.'); }
     finally { setBusy(false); }
   };
-
-  const addBot = async () => {
-    if (!host || busy) return;
-    setBusy(true);
-    try { await api('/game/bil-bakalim/add-bot', {method: 'POST'}); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Bot eklenemedi.'); }
-    finally { setBusy(false); }
-  };
+  const inviteBots = async () => {if(!host||busy)return;setBusy(true);try{const response=await api<{room:Room;added:number}>('/game/bil-bakalim/invite-bots',{method:'POST'});setRoom(response.room);setError(response.added?`${response.added} bot odaya katıldı.`:'Boş koltuk bulunmuyor.');}catch(err){setError(err instanceof Error?err.message:'Botlar davet edilemedi.');}finally{setBusy(false);}};
 
   const copyCode = async () => {
     if (!room?.code) return;
@@ -204,6 +203,7 @@ export default function BilBakalimGame() {
         body: JSON.stringify({start: selection.start, end: selection.end, requestId: createRequestId()}),
       });
       setMatch(response.match);
+      setConfirmedFound(current => [...new Set([...current, ...response.match.found])]);
       if (response.result.alreadyFound) setError('Bu kelime daha önce bulundu.');
       else if (!response.result.ok) setError(response.result.error || 'Hatalı seçim — sıra geçiyor.');
       else setError('DOĞRU! DEVAM EDEBİLİRSİN');
@@ -248,7 +248,7 @@ export default function BilBakalimGame() {
         <aside className="bb-game-instruction"><span>💡</span><p>Bir harften başlayıp sürükle. Düz, dikey veya çapraz çizgi oluştur.</p></aside>
       </header>
       <main className="bb-game-stage">
-        <section className="bb-wordbar-real"><h2>ARANAN KELİMELER {match.found.length}/20</h2><div>{match.words.map(word => <span key={word} className={match.found.includes(word) ? 'found' : ''}>{word}{match.found.includes(word) ? ' ✓' : ''}</span>)}</div></section>
+        <section className="bb-wordbar-real"><h2>ARANAN KELİMELER {new Set([...match.found, ...confirmedFound]).size}/20</h2><div>{match.words.map(word => {const found = match.found.includes(word) || confirmedFound.includes(word); return <span key={word} className={found ? 'found' : ''}>{word}{found ? ' ✓' : ''}</span>})}</div></section>
         <div className="bb-board-real" style={{gridTemplateColumns: `repeat(${gridSize}, 1fr)`}} onPointerUp={() => void submitSelection()} onPointerCancel={() => {dragging.current = false; setSelection(null);}}>
           {match.grid.flatMap((row, y) => row.map((letter, x) => <button
             key={`${x}-${y}`}
@@ -285,7 +285,7 @@ export default function BilBakalimGame() {
   return <div className="bb-shell bb-lobby-screen">
     <header className="bb-lobby-header">
       <div className="bb-brand-side"><button className="bb-back" onClick={() => void leave()} aria-label="Oyunlara dön">←</button><img src="/assets/bilio-logo.png" alt="Bilio"/></div>
-      <div className="bb-lobby-heading"><h1>💡 BİL BAKALIM</h1><div><span>ODA KODU: <b>{room.code}</b></span><button onClick={() => void copyCode()} aria-label="Oda kodunu kopyala">KOPYALA</button><button onClick={() => void invite()} disabled={!host || busy}>DAVET ET</button><button onClick={() => void addBot()} disabled={!host || busy}>🤖 BOT EKLE</button></div></div>
+      <div className="bb-lobby-heading"><h1>💡 BİL BAKALIM</h1><div><span>ODA KODU: <b>{room.code}</b></span><button onClick={() => void copyCode()} aria-label="Oda kodunu kopyala">KOPYALA</button><button onClick={() => void invite()} disabled={!host || busy}>OYUNCU DAVET ET</button><button onClick={() => void inviteBots()} disabled={!host || busy || room.players.length>=room.capacity}>BOT DAVET ET</button></div></div>
       <div aria-hidden="true"/>
     </header>
     <main className="bb-lobby-main-real">

@@ -105,3 +105,31 @@
 @media(max-height:780px){.vk-game main{min-height:calc(100vh - 120px)}.vk-ring{height:410px;min-height:390px}.vk-chat-row .vk-chat{height:135px}.vk-chat>div{max-height:74px}.journal{max-height:290px}.role-orb{margin:8px auto;font-size:40px}.vk-role p{margin:6px 0}.vk-phase-status{margin-bottom:5px;min-height:34px;padding:4px 8px}}
 
 .vk-shell{min-width:0!important}
+.quiz-shell{min-height:100vh;background:#050403;color:#f7ead8;padding:18px 26px;overflow:auto}.quiz-shell>header{height:72px;display:grid;grid-template-columns:54px 120px 1fr auto;align-items:center;gap:16px;border-bottom:1px solid #5e421b}.quiz-shell>header button{width:46px;height:46px;border:1px solid #9a6d1f;border-radius:9px;background:#0b0905;color:#ffd15a;font-size:26px}.quiz-shell>header img{max-width:110px;max-height:55px}.quiz-shell>header h1{text-align:center;letter-spacing:3px}.quiz-lobby{width:min(1320px,100%);margin:22px auto;display:grid;grid-template-columns:1.3fr .7fr;gap:16px}.quiz-lobby>div,.quiz-lobby>aside,.quiz-game{border:1px solid #75501e;border-radius:13px;background:#0b0805;padding:18px}.quiz-player{height:58px;margin:8px 0;border:1px solid #493418;border-radius:8px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center}.quiz-player.bot span{color:#f3a7cb}.quiz-lobby aside{display:grid;gap:14px;align-content:start}.quiz-lobby label{display:grid;gap:6px}.quiz-lobby select,.quiz-lobby button{height:44px;border:1px solid #76501f;border-radius:8px;background:#120d07;color:#fff;padding:0 12px}.quiz-lobby .gold,.quiz-next{background:linear-gradient(#ffc83e,#a96a00)!important;color:#180d00!important;font-weight:800}.quiz-game{width:min(1100px,100%);margin:22px auto}.quiz-top{display:flex;justify-content:space-between}.quiz-media{min-height:390px;display:grid;place-items:center;gap:10px;padding:18px}.quiz-media img{width:320px;height:280px;object-fit:cover;border:1px solid #c29a64;border-radius:18px}.quiz-media.song iframe{width:min(760px,100%);height:320px;border:1px solid #77521f;border-radius:12px}.quiz-answers{display:grid;grid-template-columns:1fr 1fr;gap:14px}.quiz-answers button,.quiz-next{min-height:66px;border:1px solid #80603b;border-radius:10px;background:#15110d;color:#fff;font-size:18px;padding:10px}.quiz-answers .correct{background:#174b27;border-color:#55c872}.quiz-answers .wrong{background:#591e22;border-color:#da4d58}.quiz-next{display:block;margin:16px auto 0;padding:10px 24px}
+
+/* Profile collection and image editor hard fixes. These selectors intentionally
+   outrank the generic .confirm-modal>div flex rule. */
+.collection-modal>.title-collection{display:grid!important;grid-template-columns:repeat(5,minmax(160px,1fr));justify-content:initial;align-content:start;gap:10px;overflow-x:hidden;overflow-y:auto}
+.collection-modal>.badge-collection{display:grid!important;grid-template-columns:repeat(6,minmax(140px,1fr));justify-content:initial;align-content:start;gap:10px;overflow-x:hidden;overflow-y:auto}
+.collection-modal>.frame-collection{display:grid!important;justify-content:initial}
+.avatar-crop-editor{display:grid!important;justify-items:center!important;gap:10px!important;margin:0 0 16px}
+.avatar-crop-window{position:relative;width:190px;height:190px;border:2px solid #a66c42;border-radius:50%;overflow:hidden;background:#080503;box-shadow:0 0 0 6px #17100b,0 0 16px #7e4a2c66}
+.avatar-crop-window img{width:100%;height:100%;object-fit:cover;transform-origin:center;user-select:none;pointer-events:none}
+.avatar-crop-editor>label{width:100%;margin:0!important;display:grid;grid-template-columns:100px 1fr;align-items:center;gap:12px}
+.avatar-crop-editor input[type=range]{width:100%;accent-color:#b87847}
+.crop-position{display:flex!important;justify-content:center!important;gap:6px!important;flex-wrap:wrap}
+.crop-position button{min-width:42px!important;width:auto;height:36px;padding:0 12px;border:1px solid #6f482f;border-radius:7px;background:#130c08;color:#fff;font-weight:700;cursor:pointer}
+@media(max-width:900px){.collection-modal>.title-collection{grid-template-columns:repeat(2,minmax(150px,1fr))}.collection-modal>.badge-collection{grid-template-columns:repeat(3,minmax(120px,1fr))}}
+
+/* Bil Bakalım fixed desktop composition: 2 top, 2 bottom, 2 left and 2 right. */
+.bb-game-stage{width:min(1760px,calc(100% - 28px));grid-template-columns:300px minmax(650px,1fr) 230px;grid-template-rows:minmax(590px,1fr) 160px;column-gap:18px}
+.bb-board-real{width:min(74vh,760px,100%)}
+.bb-board-real button{font-size:clamp(13px,1.12vw,18px);font-weight:800}
+.bb-game-stage>.bb-room-chat.compact{height:430px;min-height:430px;width:300px}
+.bb-room-chat.compact .bb-room-chat-history{height:320px;min-height:320px}
+.bb-ring-player{width:138px}
+.bb-seat-0{top:0;left:38%}.bb-seat-1{top:0;right:34%}
+.bb-seat-2{left:305px;top:27%}.bb-seat-3{left:305px;top:57%}
+.bb-seat-4{right:238px;top:27%}.bb-seat-5{right:238px;top:57%}
+.bb-seat-6{bottom:0;left:39%}.bb-seat-7{bottom:0;right:35%}
+@media(max-width:1500px){.bb-game-stage{grid-template-columns:250px minmax(570px,1fr) 205px}.bb-game-stage>.bb-room-chat.compact{width:250px;height:380px;min-height:380px}.bb-room-chat.compact .bb-room-chat-history{height:270px;min-height:270px}.bb-seat-2,.bb-seat-3{left:252px}.bb-seat-4,.bb-seat-5{right:210px}.bb-board-real{width:min(68vh,680px,100%)}}

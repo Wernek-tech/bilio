@@ -14,22 +14,25 @@ type ProfileData = {
 };
 type Friend = {userId: string; username: string; avatarUrl: string; titleId?: string; online: boolean; mutualCount: number};
 
-async function cropToSquare(file: File): Promise<string> {
-  const data = await new Promise<string>((resolve, reject) => {
+async function readImage(file: File): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     reader.onerror = () => reject(new Error('Profil resmi yüklenemedi.'));
     reader.readAsDataURL(file);
   });
+}
+
+async function renderSquareCrop(data: string, scale: number, offsetX: number, offsetY: number): Promise<string> {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image(); img.onload = () => resolve(img); img.onerror = () => reject(new Error('Profil resmi yüklenemedi.')); img.src = data;
   });
-  const side = Math.min(image.naturalWidth, image.naturalHeight);
-  const sx = Math.floor((image.naturalWidth - side) / 2), sy = Math.floor((image.naturalHeight - side) / 2);
   const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
   const context = canvas.getContext('2d'); if (!context) throw new Error('Profil resmi işlenemedi.');
-  context.drawImage(image, sx, sy, side, side, 0, 0, 512, 512);
-  return canvas.toDataURL(file.type === 'image/png' ? 'image/png' : file.type === 'image/webp' ? 'image/webp' : 'image/jpeg', .9);
+  const coverScale = Math.max(512 / image.naturalWidth, 512 / image.naturalHeight) * scale;
+  const width = image.naturalWidth * coverScale, height = image.naturalHeight * coverScale;
+  context.drawImage(image, (512 - width) / 2 + offsetX * 2, (512 - height) / 2 + offsetY * 2, width, height);
+  return canvas.toDataURL('image/jpeg', .92);
 }
 
 function ProfileAvatar({profile, previewUrl, frameId}: {profile: ProfileData; previewUrl?: string; frameId?: string | null}) {
@@ -49,6 +52,8 @@ export default function Profile() {
   const [badgeDraft, setBadgeDraft] = useState<string[]>([]);
   const [draft, setDraft] = useState({about: ''});
   const [avatar, setAvatar] = useState('');
+  const [cropSource, setCropSource] = useState('');
+  const [crop, setCrop] = useState({scale: 1, x: 0, y: 0});
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -68,7 +73,7 @@ export default function Profile() {
     setError('');
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError('Desteklenmeyen dosya türü.'); return; }
     if (file.size > 5 * 1024 * 1024) { setError('Dosya boyutu en fazla 5 MB olabilir.'); return; }
-    try { setFileName(file.name); setAvatar(await cropToSquare(file)); }
+    try { setFileName(file.name); setCropSource(await readImage(file)); setAvatar(''); setCrop({scale: 1, x: 0, y: 0}); }
     catch (err) { setError(err instanceof Error ? err.message : 'Profil resmi yüklenemedi.'); }
   };
 
@@ -81,12 +86,13 @@ export default function Profile() {
   const equippedBadges = profile.badges.filter(item => item.equipped).slice(0, 5);
   const format = (value: number) => new Intl.NumberFormat('tr-TR').format(value);
 
-  const openEdit = () => { setError(''); setAvatar(''); setFileName(''); setDraft({about: profile.about}); setEdit(true); };
+  const openEdit = () => { setError(''); setAvatar(''); setCropSource(''); setCrop({scale: 1, x: 0, y: 0}); setFileName(''); setDraft({about: profile.about}); setEdit(true); };
   const saveProfile = async () => {
     if (busy) return;
     setBusy(true); setError('');
     try {
-      await api('/profile', {method: 'PUT', body: JSON.stringify({...draft, titleId: profile.selectedTitleId, frameId: profile.selectedFrameId || '', avatarDataUrl: avatar || undefined})});
+      const avatarDataUrl = cropSource ? await renderSquareCrop(cropSource, crop.scale, crop.x, crop.y) : avatar || undefined;
+      await api('/profile', {method: 'PUT', body: JSON.stringify({...draft, titleId: profile.selectedTitleId, frameId: profile.selectedFrameId || '', avatarDataUrl})});
       setEdit(false); setAvatar(''); setFileName(''); await load(); await auth.refresh();
     } catch (err) { setError(err instanceof Error ? err.message : 'Profil kaydedilemedi.'); }
     finally { setBusy(false); }
@@ -126,6 +132,6 @@ export default function Profile() {
     {panel === 'gifts' && (profile.gifts.length ? <div className="inventory-list">{profile.gifts.map(item => <div key={item.id}><b>{item.name}</b><span>× {item.quantity}</span></div>)}</div> : <p>Henüz bir hediyen bulunmuyor.</p>)}
     {panel === 'frames' && <div className="frame-collection"><button className={!profile.selectedFrameId ? 'selected' : ''} onClick={() => void equipFrame('')}><ProfileAvatar profile={profile}/><b>ÇERÇEVESİZ</b></button>{profile.ownedFrames.map(frame => <button key={frame.id} className={profile.selectedFrameId === frame.id ? 'selected' : ''} onClick={() => void equipFrame(frame.id)}><ProfileAvatar profile={profile} frameId={frame.id}/><b>{frame.name}</b></button>)}</div>}
   </div></div>}
-  {edit && <div className="modal-back" onMouseDown={event => {if (event.target === event.currentTarget && !busy) setEdit(false);}}><div className="profile-edit-modal compact" role="dialog" aria-modal="true" aria-labelledby="edit-profile-title"><h2 id="edit-profile-title">Hakkımda ve profil resmi</h2><div className="profile-edit-preview"><ProfileAvatar profile={profile} previewUrl={avatar} frameId={profile.selectedFrameId}/></div><label>Günün sözü / Hakkımda<textarea maxLength={240} value={draft.about} onChange={event => setDraft({about: event.target.value})} placeholder="Bugün ne hissediyorsun?"/></label><label>Profil resmi<input id="avatar-file" className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void onFile(event)}/><button type="button" onClick={() => document.getElementById('avatar-file')?.click()}>PROFİL RESMİ SEÇ</button><span>{fileName || 'Yeni bir resim seçilmedi.'}</span></label>{error && <div className="inline-error">{error}</div>}<div className="modal-actions"><button onClick={() => setEdit(false)} disabled={busy}>İPTAL</button><button onClick={() => void saveProfile()} disabled={busy}>{busy ? 'BEKLEYİN…' : 'KAYDET'}</button></div></div></div>}
+  {edit && <div className="modal-back" onMouseDown={event => {if (event.target === event.currentTarget && !busy) setEdit(false);}}><div className="profile-edit-modal compact" role="dialog" aria-modal="true" aria-labelledby="edit-profile-title"><h2 id="edit-profile-title">Hakkımda ve profil resmi</h2>{cropSource ? <div className="avatar-crop-editor"><div className="avatar-crop-window"><img src={cropSource} alt="Profil resmi kırpma ön izlemesi" style={{transform: `translate(${crop.x}px, ${crop.y}px) scale(${crop.scale})`}}/></div><label>Yakınlaştır<input type="range" min="1" max="2.5" step="0.01" value={crop.scale} onChange={event => setCrop(current => ({...current, scale: Number(event.target.value)}))}/></label><div className="crop-position"><button type="button" aria-label="Resmi sola taşı" onClick={() => setCrop(current => ({...current, x: Math.max(-100, current.x - 8)}))}>←</button><button type="button" aria-label="Resmi yukarı taşı" onClick={() => setCrop(current => ({...current, y: Math.max(-100, current.y - 8)}))}>↑</button><button type="button" aria-label="Resmi aşağı taşı" onClick={() => setCrop(current => ({...current, y: Math.min(100, current.y + 8)}))}>↓</button><button type="button" aria-label="Resmi sağa taşı" onClick={() => setCrop(current => ({...current, x: Math.min(100, current.x + 8)}))}>→</button><button type="button" onClick={() => setCrop({scale: 1, x: 0, y: 0})}>SIFIRLA</button></div></div> : <div className="profile-edit-preview"><ProfileAvatar profile={profile} previewUrl={avatar} frameId={profile.selectedFrameId}/></div>}<label>Günün sözü / Hakkımda<textarea maxLength={240} value={draft.about} onChange={event => setDraft({about: event.target.value})} placeholder="Bugün ne hissediyorsun?"/></label><label>Profil resmi<input id="avatar-file" className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void onFile(event)}/><button type="button" onClick={() => document.getElementById('avatar-file')?.click()}>PROFİL RESMİ SEÇ</button><span>{fileName || 'Yeni bir resim seçilmedi.'}</span></label>{error && <div className="inline-error">{error}</div>}<div className="modal-actions"><button onClick={() => setEdit(false)} disabled={busy}>İPTAL</button><button onClick={() => void saveProfile()} disabled={busy}>{busy ? 'BEKLEYİN…' : 'KAYDET'}</button></div></div></div>}
   </SiteShell>;
 }
