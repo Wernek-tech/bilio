@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "id": "c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
+      "username": "ARIE",
+      "usernameNormalized": "arie",
+      "passwordHash": "b8a8925852b5d2ba2f84d4c8ff0d5710:06e8989e8dece49870a08d3bbf532ce30ec29ef266080c235ce2f5854fc6ccc16725d434bd114844c1d88bf42dd06449bb5c294cf49d9826d707770ceec8e932",
+      "createdAt": "2026-08-31T08:14:34.410Z",
+      "lastLoginAt": "2026-08-31T12:30:06.733Z",
+      "level": 1,
+      "xp": 0,
+      "selectedTitleId": "title-1"
+    },
+    {
+      "id": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
+      "username": "lotus",
+      "usernameNormalized": "lotus",
+      "passwordHash": "d008876ad28af3e322b4e6ce6c7bd6d8:019a902af4111026c7ab91dff67ef85322fb3f3806fa2ff8fe1262474707238c11eccbd1952b15260ea92d608950fa6d271e98995a2b33f07ebfdc74202e11d3",
+      "createdAt": "2026-08-31T14:01:29.224Z",
+      "lastLoginAt": "2026-08-31T14:01:29.224Z",
+      "level": 1,
+      "xp": 0,
+      "selectedTitleId": "title-1"
+    }
+  ],
+  "sessions": {
+    "79332d8244a9d5fe913712019620eb028a5999992c6bbfbeac1a56fc501b874f": {
+      "userId": "c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
+      "createdAt": 1788179406710
+    },
+    "0f73a07b7ccff1796a2264f344905424a9fa9aab1481f9f024c49cb1ac5fea4c": {
+      "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
+      "createdAt": 1788184889224
+    }
+  }
+}
