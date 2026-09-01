@@ -1,7 +1,0 @@
-8a153613a846419d8b9d448a67715267e9200f1663a8a2f1ba2075fc0e9ef6a4  /mnt/data/Liderlik tablosu.png
-8a153613a846419d8b9d448a67715267e9200f1663a8a2f1ba2075fc0e9ef6a4  /mnt/data/bilio-leader-work/bilio-project/public/assets/liderlik-tablosu.png
-e4dfbb41d938b658e6043a936e419444af8234414e67ffda588bd1657e0ff0fc  /mnt/data/bilio-leader-work/bilio-project/public/assets/giris-ekrani.png
-518c9d125a13f2648db3a99bc88616fbbe0c9fcbd64ea6db325ca5e6bb6c240f  /mnt/data/bilio-leader-work/bilio-project/public/assets/lobi-gorunumu.png
-e4710c827dfb6e5f04830f62798e5b23606ed2085bf8b5dcd3f77c9d867355d6  public/references/magaza-referans.png
-d2b5cbbf6c52519a5ec50b79307a5eceb9772b25ed74a6db9014739c8bc66899  /mnt/data/profil görünümü.png
-d2b5cbbf6c52519a5ec50b79307a5eceb9772b25ed74a6db9014739c8bc66899  public/references/profil-gorunumu-referans.png

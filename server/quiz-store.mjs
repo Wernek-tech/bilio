@@ -6,7 +6,7 @@ export const quizRooms=new Map();
 const now=()=>Date.now();
 const validKinds=new Set(['song','celebrity','streamer']);
 const codePrefix={song:'SB',celebrity:'TK',streamer:'YK'};
-const playerFrom=(user,seat)=>({userId:user.id,username:user.username,avatarUrl:user.profile?.avatarUrl||user.avatarUrl||'',frameId:user.profile?.selectedFrameId||user.frameId||null,titleId:user.selectedTitleId||user.titleId||'title-1',bot:Boolean(user.bot),ready:Boolean(user.bot),connected:true,seat,score:0});
+const playerFrom=(user,seat)=>({userId:user.id,username:user.username,avatarUrl:user.profile?.avatarUrl||user.avatarUrl||'',frameId:user.profile?.selectedFrameId||user.frameId||null,titleId:user.selectedTitleId||user.titleId||'title-1',level:Number(user.level)||1,bot:Boolean(user.bot),ready:Boolean(user.bot),connected:true,seat,score:0});
 const makeCode=kind=>`${codePrefix[kind]}-${crypto.randomInt(1000,10000)}`;
 export function quizRoomForUser(userId,kind){return[...quizRooms.values()].find(room=>room.kind===kind&&room.players.some(player=>player.userId===userId))||null;}
 export function quizRoomByCode(value){return[...quizRooms.values()].find(room=>room.code===String(value||'').trim().toUpperCase())||null;}
