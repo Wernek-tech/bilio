@@ -31,7 +31,7 @@ export default function Leaderboard() {
 
   const top = rows.slice(0, 3);
   const rest = rows.slice(3);
-  const podium = [top[1], top[0], top[2]].filter((row): row is Row => Boolean(row));
+  const podium = top;
 
   return <SiteShell><div className="page-body leaderboard-page">
     {loading ? <div className="page-loading">Sıralama yükleniyor...</div> : error ? <div className="leaderboard-empty"><span className="small-trophy">♜</span><b>Sıralama yüklenemedi.</b><small>{error}</small></div> : rows.length === 0 ? <section className="rank-table leaderboard-empty-table" aria-label="Haftalık liderlik tablosu">

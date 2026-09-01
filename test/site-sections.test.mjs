@@ -102,9 +102,27 @@ test('lobide oyuncular gerçek hesapları arkadaş ekleyebilir ve durum profilde
   [, result] = await req('/api/friends');
   assert.equal(result.items[0].username, 'ArayuzTest');
   cookie = firstCookie;
+  let [messageResponse,messageResult]=await req(`/api/private-messages/${second.user.id}`,{method:'POST',body:JSON.stringify({content:'Özel merhaba'})});
+  assert.equal(messageResponse.status,201);assert.equal(messageResult.item.content,'Özel merhaba');
+  [messageResponse,messageResult]=await req(`/api/private-messages/${second.user.id}`);assert.equal(messageResponse.status,200);assert.equal(messageResult.items.length,1);
+  [response]=await req('/api/friends/remove',{method:'POST',body:JSON.stringify({userId:second.user.id})});assert.equal(response.status,200);
+  [response]=await req(`/api/private-messages/${second.user.id}`);assert.equal(response.status,403);
+  [response]=await req('/api/friends/add',{method:'POST',body:JSON.stringify({userId:second.user.id})});assert.equal(response.status,200);
+  [response]=await req(`/api/users/${second.user.id}/block`,{method:'POST'});assert.equal(response.status,200);
+  [,result]=await req('/api/friends');assert.equal(result.items.some(item=>item.userId===second.user.id),false);
 });
 
 test('haftalık liderlik örnek oyuncu uydurmaz', async () => {
   const [response, result] = await req('/api/leaderboard?limit=100');
   assert.equal(response.status, 200); assert.deepEqual(result.rows, []); assert.equal(result.current, null);
+});
+
+test('çıkış yapan arkadaş çevrim dışı görünür', async () => {
+  const ownerCookie=cookie;
+  const [registered,friend]=await req('/api/register',{method:'POST',body:JSON.stringify({username:'CevrimDisiTest',password:'Guvenli123',passwordRepeat:'Guvenli123'})});
+  const friendCookie=registered.headers.get('set-cookie').split(';')[0];
+  cookie=ownerCookie;let [response]=await req('/api/friends/add',{method:'POST',body:JSON.stringify({userId:friend.user.id})});assert.equal(response.status,200);
+  let [,result]=await req('/api/friends');assert.equal(result.items.find(item=>item.userId===friend.user.id).online,true);
+  cookie=friendCookie;await req('/api/logout',{method:'POST'});
+  cookie=ownerCookie;[,result]=await req('/api/friends');assert.equal(result.items.find(item=>item.userId===friend.user.id).online,false);
 });
