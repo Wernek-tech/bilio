@@ -99,21 +99,21 @@
           "title": "Maç XP ödülün hazır",
           "body": "Bu maçtan 500 XP kazandın.",
           "createdAt": "2026-09-01T17:42:36.785Z",
-          "readAt": null
+          "readAt": "2026-09-01T18:09:58.459Z"
         },
         {
           "id": "e009ef0f-dd40-4365-b7be-57147c552043",
           "title": "Maç XP ödülün hazır",
           "body": "Bu maçtan 500 XP kazandın.",
           "createdAt": "2026-09-01T17:46:04.815Z",
-          "readAt": null
+          "readAt": "2026-09-01T18:09:58.076Z"
         },
         {
           "id": "d39d326c-11aa-48c5-8258-9eb672a78ac8",
           "title": "Maç XP ödülün hazır",
           "body": "Bu maçtan 400 XP kazandın.",
           "createdAt": "2026-09-01T17:47:46.834Z",
-          "readAt": null
+          "readAt": "2026-09-01T18:09:57.673Z"
         }
       ],
       "inventory": [],
@@ -3374,7 +3374,8 @@
           "readAt": null
         }
       ],
-      "blockedUsers": []
+      "blockedUsers": [],
+      "likesReceived": []
     },
     {
       "id": "f5941473-ee6b-4a01-8fc3-f8ce1c8fd7d7",
@@ -3431,7 +3432,8 @@
           "readAt": null
         }
       ],
-      "blockedUsers": []
+      "blockedUsers": [],
+      "likesReceived": []
     },
     {
       "id": "d82e8d4a-84cd-4a41-af4a-7e165a388689",
@@ -3488,14 +3490,15 @@
           "readAt": null
         }
       ],
-      "blockedUsers": []
+      "blockedUsers": [],
+      "likesReceived": []
     }
   ],
   "sessions": {
     "0f73a07b7ccff1796a2264f344905424a9fa9aab1481f9f024c49cb1ac5fea4c": {
       "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
       "createdAt": 1788184889224,
-      "lastSeenAt": 1788284225579
+      "lastSeenAt": 1788285838421
     },
     "112b4c06381a471a6f7ae1a9a4b440a159defa51ccdb4e9fdcf93f8c499d4adf": {
       "userId": "308e2ea9-7518-49a3-9e13-f6c31781cb8e",
@@ -3508,7 +3511,7 @@
     "691711d8951e04717fedddef57612b10d781d3f6b15fe0eabda289a99ba6156e": {
       "userId": "8fecf1f3-dc78-4220-bad5-8a0f386cabd4",
       "createdAt": 1788198608138,
-      "lastSeenAt": 1788285219819
+      "lastSeenAt": 1788286179955
     },
     "1a6570de16e1142f2d38e7fb3ff3af85e40adff93ea44f1f2b5f533ebf6e28fc": {
       "userId": "323fa82b-3fea-44b9-93c5-a5fa1756127b",
@@ -3521,22 +3524,22 @@
     "ff1d4d2599f3ce8f3d83e88e44c108d8913cdb901c30fa2eeaca010c8642c892": {
       "userId": "c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
       "createdAt": 1788278787245,
-      "lastSeenAt": 1788285224073
+      "lastSeenAt": 1788286198459
     },
     "6ec756589c5a3bd09f2d8a5ba92bc908a3b8ad3660c82715ba0872ff07452e7a": {
       "userId": "480092f0-f252-414e-bf45-44b83b6af47b",
       "createdAt": 1788284191382,
-      "lastSeenAt": 1788284908847
+      "lastSeenAt": 1788286092427
     },
     "c3ada69b832a51fcb84b0af6c45ef0e64c0a2700ad1c13b5538499225d57e240": {
       "userId": "ed302c6d-0a0e-4a01-9c52-2af66bf15388",
       "createdAt": 1788284276515,
-      "lastSeenAt": 1788284773546
+      "lastSeenAt": 1788286177394
     },
     "002a7f34ac64154a29a767e6254a9b07a2383926487e975c1ceade3de9b8dc6b": {
       "userId": "f5941473-ee6b-4a01-8fc3-f8ce1c8fd7d7",
       "createdAt": 1788284916372,
-      "lastSeenAt": 1788284916426
+      "lastSeenAt": 1788285654100
     },
     "d5b7fdd9169f5f66e98ab4e291d3505e7cc100cf113a7f1af0d4ce0c735ad1d9": {
       "userId": "d82e8d4a-84cd-4a41-af4a-7e165a388689",
@@ -3895,6 +3898,28 @@
       "avatarUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2Ij48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImciPjxzdG9wIHN0b3AtY29sb3I9IiMyZDczYjkiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMxMjA5MDYiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgcng9IjEyOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyOCIgY3k9IjkyIiByPSI0OCIgZmlsbD0iI2Q1OWE3MiIvPjxwYXRoIGQ9Ik00OCAyMzhjOC02MyA0Mi05MiA4MC05MnM3MiAyOSA4MCA5MiIgZmlsbD0iIzJkNzNiOSIvPjx0ZXh0IHg9IjEyOCIgeT0iMTExIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNTQiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmZmYiPkg8L3RleHQ+PGNpcmNsZSBjeD0iMTI4IiBjeT0iMTI4IiByPSIxMTkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmNWJhNyIgc3Ryb2tlLXdpZHRoPSI3IiBzdHJva2UtZGFzaGFycmF5PSIxMCA3Ii8+PC9zdmc+",
       "content": "Aleyküm selam 👋",
       "createdAt": "2026-09-01T17:38:32.975Z"
+    },
+    {
+      "id": "22f192c9-b972-480c-9367-8f5daaba6159",
+      "kind": "message",
+      "userId": "480092f0-f252-414e-bf45-44b83b6af47b",
+      "username": "servet11",
+      "level": 1,
+      "titleId": "title-1",
+      "avatarUrl": "",
+      "content": "😀",
+      "createdAt": "2026-09-01T18:00:32.813Z"
+    },
+    {
+      "id": "e04da71d-858e-490a-b7b4-06b3002869f1",
+      "kind": "message",
+      "userId": "480092f0-f252-414e-bf45-44b83b6af47b",
+      "username": "servet11",
+      "level": 1,
+      "titleId": "title-1",
+      "avatarUrl": "",
+      "content": "❤️",
+      "createdAt": "2026-09-01T18:00:42.891Z"
     }
   ],
   "lobbyInvites": [
@@ -4221,6 +4246,32 @@
         "players": 1,
         "max": 8,
         "expiresAt": 1788285524074
+      }
+    },
+    {
+      "id": "e9169b4c-f064-4426-a26f-8a3a974a9fd0",
+      "kind": "invite",
+      "username": "ARIE",
+      "createdAt": "2026-09-01T18:00:53.947Z",
+      "invite": {
+        "game": "ŞARKIYI BİL",
+        "roomCode": "SB-1327",
+        "players": 1,
+        "max": 8,
+        "expiresAt": 1788285953947
+      }
+    },
+    {
+      "id": "2aa56e26-d553-4a4a-bf44-5027c3ca6408",
+      "kind": "invite",
+      "username": "quiztest1",
+      "createdAt": "2026-09-01T18:00:54.100Z",
+      "invite": {
+        "game": "ŞARKIYI BİL",
+        "roomCode": "SB-8929",
+        "players": 1,
+        "max": 8,
+        "expiresAt": 1788285954100
       }
     }
   ],
