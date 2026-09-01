@@ -22300,13 +22300,19 @@ var titles = names.map(([name, slug], i) => {
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
 var emojis = ["\u{1F369}", "\u{1F600}", "\u{1F602}", "\u{1F60D}", "\u{1F44D}", "\u{1F44F}", "\u{1F389}", "\u2764\uFE0F", "\u2B50", "\u{1F525}"];
 function Lobby() {
-  const auth = useAuth(), userId = auth.user?.id, [items2, setItems] = (0, import_react6.useState)([]), [friends, setFriends] = (0, import_react6.useState)([]), [text, setText] = (0, import_react6.useState)(""), [busy, setBusy] = (0, import_react6.useState)(false), [err, setErr] = (0, import_react6.useState)(""), [authOpen, setAuthOpen] = (0, import_react6.useState)(false), [emojiOpen, setEmojiOpen] = (0, import_react6.useState)(false), bottom = (0, import_react6.useRef)(null);
+  const auth = useAuth(), userId = auth.user?.id, [items2, setItems] = (0, import_react6.useState)([]), [friends, setFriends] = (0, import_react6.useState)([]), [text, setText] = (0, import_react6.useState)(""), [busy, setBusy] = (0, import_react6.useState)(false), [err, setErr] = (0, import_react6.useState)(""), [authOpen, setAuthOpen] = (0, import_react6.useState)(false), [emojiOpen, setEmojiOpen] = (0, import_react6.useState)(false), [activePlayer, setActivePlayer] = (0, import_react6.useState)(null), [profile, setProfile] = (0, import_react6.useState)(null), [donutQuantity, setDonutQuantity] = (0, import_react6.useState)(0), [reward, setReward] = (0, import_react6.useState)(null), bottom = (0, import_react6.useRef)(null);
   const load = (0, import_react6.useCallback)(async () => {
     try {
       const messages = await api("/lobby/messages?limit=100");
       setItems(messages.items.filter((item) => item && item.id));
-      if (userId) setFriends((await api("/friends")).items);
-      else setFriends([]);
+      if (userId) {
+        setFriends((await api("/friends")).items);
+        const products = await api("/store/products?category=HED\u0130YELER");
+        setDonutQuantity(products.items.find((item) => item.id === "gift-donut-pack")?.quantity || 0);
+      } else {
+        setFriends([]);
+        setDonutQuantity(0);
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Lobi mesajlar\u0131 y\xFCklenemedi.");
     }
@@ -22317,7 +22323,13 @@ function Lobby() {
     es.onmessage = (e) => {
       try {
         const d = JSON.parse(e.data);
-        if (d.type === "lobby-item" && d.item?.id) setItems((v) => v.some((x) => x.id === d.item.id) ? v : [...v, d.item]);
+        if (d.type === "lobby-item" && d.item?.id) setItems((v) => {
+          const found = v.findIndex((x) => x.id === d.item.id);
+          if (found < 0) return [...v, d.item];
+          const next = [...v];
+          next[found] = d.item;
+          return next;
+        });
       } catch {
         setErr("Lobi ba\u011Flant\u0131s\u0131 yenileniyor\u2026");
       }
@@ -22353,9 +22365,64 @@ function Lobby() {
     setBusy(true);
     try {
       await api("/friends/add", { method: "POST", body: JSON.stringify({ userId: userId2 }) });
+      setProfile((current) => current?.userId === userId2 ? { ...current, isFriend: true } : current);
       await load();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Arkada\u015F eklenemedi.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const viewProfile = async (id) => {
+    if (id.startsWith("bot-")) return;
+    try {
+      setProfile((await api(`/profiles/${encodeURIComponent(id)}`)).profile);
+      setActivePlayer(null);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Profil a\xE7\u0131lamad\u0131.");
+    }
+  };
+  const likeProfile = async () => {
+    if (!profile) return;
+    if (!auth.user) {
+      setAuthOpen(true);
+      return;
+    }
+    try {
+      const result = await api(`/profiles/${encodeURIComponent(profile.userId)}/like`, { method: "POST" });
+      setProfile({ ...profile, ...result });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Be\u011Feni verilemedi.");
+    }
+  };
+  const shareDonut = async () => {
+    if (!auth.user) {
+      setAuthOpen(true);
+      return;
+    }
+    setBusy(true);
+    try {
+      await api("/lobby/donut-packs/share", { method: "POST" });
+      setDonutQuantity((value) => Math.max(0, value - 1));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Donut paketi payla\u015F\u0131lamad\u0131.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const claimDonut = async (packId) => {
+    if (!auth.user) {
+      setAuthOpen(true);
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await api(`/lobby/donut-packs/claim`, { method: "POST", body: JSON.stringify({ packId }) });
+      auth.patch({ diamonds: result.user.diamonds });
+      setReward(result.amount);
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Donut paketi a\xE7\u0131lamad\u0131.");
     } finally {
       setBusy(false);
     }
@@ -22369,7 +22436,11 @@ function Lobby() {
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children: "\u0130lk mesaj\u0131 sen g\xF6nderebilirsin." })
           ] }) : items2.map((m) => {
             const username = m.username || "Oyuncu", isBot = m.titleId === "bilio-bot" || m.userId?.startsWith("bot-"), friend = friends.find((item) => item.userId === m.userId);
-            return m.kind === "invite" ? /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("article", { className: "invite-card", children: [
+            if (m.kind === "invite") return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("article", { className: "invite-card modern-invite", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "invite-player-icon", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children: "\u2659" }),
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("i", { children: "\uFF0B" })
+              ] }),
               /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { children: [
                 /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("b", { children: [
                   username,
@@ -22381,7 +22452,7 @@ function Lobby() {
                   m.invite?.players,
                   "/",
                   m.invite?.max,
-                  " oyuncu"
+                  " oyuncu \xB7 Davete kat\u0131l ve birlikte oyna"
                 ] })
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { onClick: async () => {
@@ -22396,21 +22467,51 @@ function Lobby() {
                   setErr(e instanceof Error ? e.message : "Odaya kat\u0131l\u0131namad\u0131.");
                 }
               }, children: "ODAYA KATIL" })
-            ] }, m.id) : /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("article", { className: `chat-row${isBot ? " bot-message" : ""}`, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "chat-avatar", children: m.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: m.avatarUrl, alt: "" }) : username.slice(0, 1).toLocaleUpperCase("tr-TR") }),
+            ] }, m.id);
+            if (m.kind === "donut-pack" && m.donutPack) return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("article", { className: "donut-pack-card", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "donut-pack-art", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: "/assets/nav-donut.png", alt: "Donut elmas paketi" }),
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children: "\u{1F381}" })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("b", { children: [
+                  username,
+                  " bir Payla\u015F\u0131ml\u0131 Donut Paketi a\xE7t\u0131!"
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children: "20 farkl\u0131 oyuncuya toplam 5.000 elmas da\u011F\u0131t\u0131l\u0131r." }),
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("small", { children: [
+                  m.donutPack.claimedCount,
+                  "/",
+                  m.donutPack.maxClaims,
+                  " ki\u015Fi a\xE7t\u0131 \xB7 ",
+                  m.donutPack.remainingDiamonds.toLocaleString("tr-TR"),
+                  " elmas kald\u0131"
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "pack-progress", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("i", { style: { width: `${m.donutPack.claimedCount / m.donutPack.maxClaims * 100}%` } }) })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { disabled: busy || m.donutPack.claimedCount >= m.donutPack.maxClaims, onClick: () => void claimDonut(m.donutPack.packId), children: "PAKET\u0130 A\xC7" })
+            ] }, m.id);
+            return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("article", { className: `chat-row${isBot ? " bot-message" : ""}`, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "chat-person", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { className: "chat-person-button", "aria-label": `${username} oyuncu se\xE7enekleri`, onClick: () => m.userId && !isBot && setActivePlayer(activePlayer === m.userId ? null : m.userId), children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "chat-avatar", children: m.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: m.avatarUrl, alt: "" }) : username.slice(0, 1).toLocaleUpperCase("tr-TR") }) }),
+                activePlayer === m.userId && m.userId && !isBot && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "player-actions-popover", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { onClick: () => void viewProfile(m.userId), children: "PROF\u0130L\u0130 G\xD6R" }),
+                  auth.user && m.userId !== auth.user.id && !friend && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { onClick: () => void addFriend(m.userId), children: "ARKADA\u015E EKLE" }),
+                  friend && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("small", { children: [
+                    "ARKADA\u015E \xB7 ",
+                    friend.mutualCount,
+                    " ORTAK"
+                  ] })
+                ] })
+              ] }),
               /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "chat-main", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "chat-meta", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("b", { children: username }),
+                  /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { className: "chat-name", onClick: () => m.userId && !isBot && setActivePlayer(activePlayer === m.userId ? null : m.userId), children: username }),
                   /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { className: "level-chip", children: [
                     "SV. ",
                     m.level || 1
                   ] }),
                   isBot ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { className: "bot-title", src: "/assets/bilio-logo.png", alt: "Bilio botu" }) : m.titleId && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: (titles.find((t) => t.id === m.titleId) || titles[0]).assetPath, alt: "Ku\u015Fan\u0131lm\u0131\u015F unvan" }),
-                  auth.user && m.userId && m.userId !== auth.user.id && !isBot && (friend ? /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("small", { className: "friend-state", children: [
-                    "ARKADA\u015E \xB7 ",
-                    friend.mutualCount,
-                    " ORTAK"
-                  ] }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { className: "friend-add", onClick: () => void addFriend(m.userId), children: "+ ARKADA\u015E EKLE" })),
                   /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("time", { children: new Date(m.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) })
                 ] }),
                 /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("p", { children: m.content || "" })
@@ -22427,12 +22528,70 @@ function Lobby() {
               setEmojiOpen(false);
             }, children: emoji }, emoji)) })
           ] }),
+          donutQuantity > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("button", { type: "button", className: "share-donut", onClick: () => void shareDonut(), disabled: busy, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: "/assets/nav-donut.png", alt: "" }),
+            " PAKET PAYLA\u015E ",
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("b", { children: [
+              "\xD7",
+              donutQuantity
+            ] })
+          ] }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("input", { "aria-label": "Mesaj\u0131n\u0131 yaz", maxLength: 500, placeholder: "Mesaj\u0131n\u0131 yaz...", value: text, onChange: (e) => setText(e.target.value), disabled: busy }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { className: "donut-send", "aria-label": "Mesaj g\xF6nder", disabled: busy || !text.trim(), children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: "/assets/nav-donut.png", alt: "" }) })
         ] }),
         err && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "inline-error", role: "status", children: err })
       ] }),
       !auth.user && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "guest-note", children: "Lobi sohbetine kat\u0131lmak i\xE7in kay\u0131t olman\u0131z veya giri\u015F yapman\u0131z gerekiyor." })
+    ] }),
+    profile && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "modal-back", onMouseDown: (event) => {
+      if (event.target === event.currentTarget) setProfile(null);
+    }, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("section", { className: "public-profile-modal", role: "dialog", "aria-modal": "true", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { className: "modal-x", onClick: () => setProfile(null), children: "\xD7" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("header", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: `public-avatar ${profile.selectedFrameId || ""}`, children: [
+          profile.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: profile.avatarUrl, alt: "" }) : profile.username.slice(0, 1).toLocaleUpperCase("tr-TR"),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("i", { children: profile.level })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h2", { children: profile.username }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: (titles.find((item) => item.id === profile.selectedTitleId) || titles[0]).assetPath, alt: "Unvan" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("p", { children: profile.about || "Hen\xFCz hakk\u0131nda bilgisi eklenmedi." })
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "public-profile-actions", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("button", { className: `profile-like${profile.likedByMe ? " liked" : ""}`, disabled: profile.isSelf || profile.likedByMe, onClick: () => void likeProfile(), children: [
+          "\u2661 ",
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("b", { children: profile.likeCount }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children: profile.likedByMe ? "BE\u011EEND\u0130N" : "BE\u011EEN" })
+        ] }),
+        !profile.isSelf && !profile.isFriend && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { onClick: () => void addFriend(profile.userId), children: "\uFF0B ARKADA\u015E EKLE" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "public-profile-sections", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("section", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h3", { children: "ROZET V\u0130TR\u0130N\u0130" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { children: [
+            profile.badges.filter((item) => item.equipped).slice(0, 5).map((item) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: item.assetPath, title: `${item.name} \u2014 ${item.requirement}`, alt: item.name }, item.id)) || null,
+            !profile.badges.some((item) => item.equipped) && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("small", { children: "Vitrinde rozet yok." })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("section", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h3", { children: "HED\u0130YELER" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { children: profile.gifts.length ? profile.gifts.map((item) => /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { children: [
+            "\u{1F381} ",
+            item.name,
+            " \xD7",
+            item.quantity
+          ] }, item.id)) : /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("small", { children: "Hen\xFCz hediye yok." }) })
+        ] })
+      ] })
+    ] }) }),
+    reward !== null && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "reward-toast", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("img", { src: "/assets/nav-donut.png", alt: "" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("b", { children: [
+        reward.toLocaleString("tr-TR"),
+        " ELMAS KAZANDIN!"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { onClick: () => setReward(null), children: "TAMAM" })
     ] }),
     authOpen && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(AuthModal, { onClose: () => setAuthOpen(false) })
   ] });
@@ -22466,7 +22625,7 @@ function Leaderboard() {
   }, [auth.user?.id]);
   const top = rows.slice(0, 3);
   const rest = rows.slice(3);
-  const podium = [top[1], top[0], top[2]];
+  const podium = [top[1], top[0], top[2]].filter((row) => Boolean(row));
   return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(SiteShell, { children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "page-body leaderboard-page", children: loading ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "page-loading", children: "S\u0131ralama y\xFCkleniyor..." }) : error ? /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "leaderboard-empty", children: [
     /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "small-trophy", children: "\u265C" }),
     /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("b", { children: "S\u0131ralama y\xFCklenemedi." }),
@@ -22483,7 +22642,7 @@ function Leaderboard() {
       /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("small", { children: "Oyun oynayarak haftal\u0131k s\u0131ralamada yerini alabilirsin." })
     ] })
   ] }) : /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(import_jsx_runtime6.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "podium", children: podium.map((row) => row && /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("article", { className: `podium-card p${row.rank}`, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: `leaderboard-podium entries-${podium.length}`, children: podium.map((row) => /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("article", { className: `podium-card p${row.rank}`, children: [
       /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "rank-no", children: row.rank }),
       /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "pod-avatar", children: row.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("img", { src: row.avatarUrl, alt: `${row.username} profil resmi` }) : row.username.slice(0, 1).toLocaleUpperCase("tr-TR") }),
       /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("b", { children: row.username }),
@@ -22491,6 +22650,13 @@ function Leaderboard() {
       /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("strong", { children: [
         format(row.score),
         " PUAN"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("small", { children: [
+        "SEV\u0130YE ",
+        row.level,
+        " \xB7 ",
+        row.victories,
+        " GAL\u0130B\u0130YET"
       ] })
     ] }, row.userId)) }),
     /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("section", { className: "rank-table", "aria-label": "Haftal\u0131k liderlik tablosu", children: [
@@ -22702,6 +22868,7 @@ function Profile() {
   const [fileName, setFileName] = (0, import_react9.useState)("");
   const [error, setError] = (0, import_react9.useState)("");
   const [busy, setBusy] = (0, import_react9.useState)(false);
+  const drag = (0, import_react9.useRef)(null);
   const load = (0, import_react9.useCallback)(async () => {
     const response = await api("/profile");
     setProfile(response.profile);
@@ -22831,26 +22998,33 @@ function Profile() {
             new Date(profile.createdAt).toLocaleDateString("tr-TR")
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "friends-region", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("header", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { children: "ARKADA\u015ELARIM" }),
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { children: [
-              friends.filter((friend) => friend.online).length,
-              " \xE7evrim i\xE7i"
-            ] })
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "profile-social-region", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "profile-like own-like", title: "Profil be\u011Fenileri", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { children: "\u2661" }),
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("b", { children: format3(profile.likeCount) }),
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("small", { children: "BE\u011EEN\u0130" })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { children: friends.length ? friends.slice(0, 6).map((friend) => /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("article", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "friend-avatar", children: friend.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: friend.avatarUrl, alt: "" }) : friend.username.slice(0, 1).toLocaleUpperCase("tr-TR") }),
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("p", { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("b", { children: friend.username }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("small", { className: friend.online ? "online" : "", children: [
-                friend.online ? "\xC7evrim i\xE7i" : "\xC7evrim d\u0131\u015F\u0131",
-                " \xB7 ",
-                friend.mutualCount,
-                " ortak arkada\u015F"
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "friends-region", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("header", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { children: "ARKADA\u015ELARIM" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { children: [
+                friends.filter((friend) => friend.online).length,
+                " \xE7evrim i\xE7i"
               ] })
-            ] })
-          ] }, friend.userId)) : /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { className: "friends-empty", children: "Hen\xFCz arkada\u015F\u0131n bulunmuyor. Lobideki oyuncular\u0131 arkada\u015F olarak ekleyebilirsin." }) })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { children: friends.length ? friends.slice(0, 6).map((friend) => /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("article", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "friend-avatar", children: friend.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: friend.avatarUrl, alt: "" }) : friend.username.slice(0, 1).toLocaleUpperCase("tr-TR") }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("p", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("b", { children: friend.username }),
+                /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("small", { className: friend.online ? "online" : "", children: [
+                  friend.online ? "\xC7evrim i\xE7i" : "\xC7evrim d\u0131\u015F\u0131",
+                  " \xB7 ",
+                  friend.mutualCount,
+                  " ortak arkada\u015F"
+                ] })
+              ] })
+            ] }, friend.userId)) : /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { className: "friends-empty", children: "Hen\xFCz arkada\u015F\u0131n bulunmuyor. Lobideki oyuncular\u0131 arkada\u015F olarak ekleyebilirsin." }) })
+          ] })
         ] })
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("section", { className: "stats-row", children: [["Toplam Ma\xE7", profile.stats.matches], ["Galibiyet", profile.stats.wins], ["Galibiyet Oran\u0131", `${winRate.toFixed(1)}%`], ["Do\u011Fru Cevap", profile.stats.correct], ["Toplam Puan", profile.stats.score]].map(([label, value]) => /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("article", { children: [
@@ -22952,36 +23126,62 @@ function Profile() {
     ] }) }),
     edit && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "modal-back", onMouseDown: (event) => {
       if (event.target === event.currentTarget && !busy) setEdit(false);
-    }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "profile-edit-modal compact", role: "dialog", "aria-modal": "true", "aria-labelledby": "edit-profile-title", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { id: "edit-profile-title", children: "Hakk\u0131mda ve profil resmi" }),
+    }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "profile-edit-modal compact modern-profile-editor", role: "dialog", "aria-modal": "true", "aria-labelledby": "edit-profile-title", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("header", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("small", { children: "PROF\u0130L\u0130N\u0130 K\u0130\u015E\u0130SELLE\u015ET\u0130R" }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { id: "edit-profile-title", children: "Profil foto\u011Fraf\u0131 ve hakk\u0131nda" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { "aria-label": "Pencereyi kapat", onClick: () => setEdit(false), children: "\xD7" })
+      ] }),
       cropSource ? /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "avatar-crop-editor", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "avatar-crop-window", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: cropSource, alt: "Profil resmi k\u0131rpma \xF6n izlemesi", style: { transform: `translate(${crop.x}px, ${crop.y}px) scale(${crop.scale})` } }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "crop-hint", children: "Foto\u011Fraf\u0131 s\xFCr\xFCkleyerek konumland\u0131r" }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "avatar-crop-window", onPointerDown: (event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
+          drag.current = { x: crop.x, y: crop.y, startX: event.clientX, startY: event.clientY };
+        }, onPointerMove: (event) => {
+          if (!drag.current) return;
+          setCrop((current) => ({ ...current, x: Math.max(-120, Math.min(120, drag.current.x + event.clientX - drag.current.startX)), y: Math.max(-120, Math.min(120, drag.current.y + event.clientY - drag.current.startY)) }));
+        }, onPointerUp: () => {
+          drag.current = null;
+        }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "crop-grid" }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: cropSource, alt: "Profil resmi k\u0131rpma \xF6n izlemesi", style: { transform: `translate(${crop.x}px, ${crop.y}px) scale(${crop.scale})` } })
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("label", { children: [
-          "Yak\u0131nla\u015Ft\u0131r",
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("input", { type: "range", min: "1", max: "2.5", step: "0.01", value: crop.scale, onChange: (event) => setCrop((current) => ({ ...current, scale: Number(event.target.value) })) })
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { children: "YAKINLA\u015ETIR" }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("input", { type: "range", min: "1", max: "3", step: "0.01", value: crop.scale, onChange: (event) => setCrop((current) => ({ ...current, scale: Number(event.target.value) })) }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("b", { children: [
+            Math.round(crop.scale * 100),
+            "%"
+          ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "crop-position", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", "aria-label": "Resmi sola ta\u015F\u0131", onClick: () => setCrop((current) => ({ ...current, x: Math.max(-100, current.x - 8) })), children: "\u2190" }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", "aria-label": "Resmi yukar\u0131 ta\u015F\u0131", onClick: () => setCrop((current) => ({ ...current, y: Math.max(-100, current.y - 8) })), children: "\u2191" }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", "aria-label": "Resmi a\u015Fa\u011F\u0131 ta\u015F\u0131", onClick: () => setCrop((current) => ({ ...current, y: Math.min(100, current.y + 8) })), children: "\u2193" }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", "aria-label": "Resmi sa\u011Fa ta\u015F\u0131", onClick: () => setCrop((current) => ({ ...current, x: Math.min(100, current.x + 8) })), children: "\u2192" }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", onClick: () => setCrop({ scale: 1, x: 0, y: 0 }), children: "SIFIRLA" })
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", onClick: () => setCrop({ scale: 1, x: 0, y: 0 }), children: "\u21BA ORTALA" }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", onClick: () => document.getElementById("avatar-file")?.click(), children: "\u21A5 BA\u015EKA FOTO\u011ERAF" })
         ] })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "profile-edit-preview", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ProfileAvatar, { profile, previewUrl: avatar, frameId: profile.selectedFrameId }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("label", { children: [
-        "G\xFCn\xFCn s\xF6z\xFC / Hakk\u0131mda",
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("textarea", { maxLength: 240, value: draft.about, onChange: (event) => setDraft({ about: event.target.value }), placeholder: "Bug\xFCn ne hissediyorsun?" })
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "profile-edit-preview", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ProfileAvatar, { profile, previewUrl: avatar, frameId: profile.selectedFrameId }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { children: "JPG, PNG veya WEBP \xB7 En fazla 5 MB" })
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("label", { children: [
+        "G\xFCn\xFCn s\xF6z\xFC / Hakk\u0131mda",
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("textarea", { maxLength: 240, value: draft.about, onChange: (event) => setDraft({ about: event.target.value }), placeholder: "Bug\xFCn ne hissediyorsun?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("small", { children: [
+          draft.about.length,
+          "/240"
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("label", { className: "avatar-upload-label", children: [
         "Profil resmi",
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("input", { id: "avatar-file", className: "sr-only", type: "file", accept: "image/jpeg,image/png,image/webp", onChange: (event) => void onFile(event) }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", onClick: () => document.getElementById("avatar-file")?.click(), children: "PROF\u0130L RESM\u0130 SE\xC7" }),
+        !cropSource && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "button", onClick: () => document.getElementById("avatar-file")?.click(), children: "\uFF0B PROF\u0130L FOTO\u011ERAFI SE\xC7" }),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { children: fileName || "Yeni bir resim se\xE7ilmedi." })
       ] }),
       error && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "inline-error", children: error }),
       /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "modal-actions", children: [
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { onClick: () => setEdit(false), disabled: busy, children: "\u0130PTAL" }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { onClick: () => void saveProfile(), disabled: busy, children: busy ? "BEKLEY\u0130N\u2026" : "KAYDET" })
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "save-profile", onClick: () => void saveProfile(), disabled: busy, children: busy ? "KAYDED\u0130L\u0130YOR\u2026" : "DE\u011E\u0130\u015E\u0130KL\u0130KLER\u0130 KAYDET" })
       ] })
     ] }) })
   ] });

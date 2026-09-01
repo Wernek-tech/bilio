@@ -37,11 +37,12 @@ test('lobi başlangıçta sahte mesaj içermez ve gerçek mesaj kalıcıdır', a
   assert.equal(result.items.length, 1); assert.equal(result.items[0].content, 'Merhaba Bilio!'); assert.equal(result.items[0].username, 'ArayuzTest');
 });
 
-test('mağaza yeni özel ürünler eklenene kadar eski satış ürünlerini göstermez', async () => {
+test('mağaza yalnızca yeni paylaşımlı donut paketini gösterir', async () => {
   for (const category of ['EMOJİLER', 'UNVANLAR', 'ÇERÇEVELER', 'ROZETLER', 'HEDİYELER', 'TAKVİYELER']) {
     const [response, result] = await req(`/api/store/products?category=${encodeURIComponent(category)}`);
     assert.equal(response.status, 200);
-    assert.deepEqual(result.items, [], `${category} eski satış ürünü taşımamalı`);
+    if(category==='HEDİYELER'){assert.equal(result.items.length,1);assert.equal(result.items[0].id,'gift-donut-pack');assert.equal(result.items[0].price,5000);assert.equal(result.items[0].currency,'gold')}
+    else assert.deepEqual(result.items, [], `${category} eski satış ürünü taşımamalı`);
   }
 });
 
@@ -63,6 +64,27 @@ test('profil gerçek hesap verisini döndürür ve düzenlemeler yeniden girişt
   assert.equal(result.profile.ownedTitleIds.length, 1); assert.equal(result.profile.badges.length, 36);
   assert.ok(result.profile.badges.every(item => item.assetPath && item.requirement));
   assert.ok(Array.isArray(result.profile.gifts)); assert.ok(Array.isArray(result.profile.achievements));
+});
+
+test('profil görüntüleme ve tekil beğeni sunucuda korunur', async () => {
+  const ownerCookie=cookie;
+  const [registerResponse, other]=await req('/api/register',{method:'POST',body:JSON.stringify({username:'BegeniTest',password:'Guvenli123',passwordRepeat:'Guvenli123'})});
+  const otherCookie=registerResponse.headers.get('set-cookie').split(';')[0];
+  cookie=ownerCookie;
+  let [response,result]=await req(`/api/profiles/${other.user.id}`);assert.equal(response.status,200);assert.equal(result.profile.likeCount,0);assert.equal(result.profile.username,'BegeniTest');
+  [response,result]=await req(`/api/profiles/${other.user.id}/like`,{method:'POST'});assert.equal(response.status,200);assert.equal(result.likeCount,1);
+  [response]=await req(`/api/profiles/${other.user.id}/like`,{method:'POST'});assert.equal(response.status,409);
+  cookie=otherCookie;[,result]=await req('/api/profile');assert.equal(result.profile.likeCount,1);
+  cookie=ownerCookie;
+});
+
+test('donut paketi yalnızca farklı hesaplara birer kez ödül verir', async () => {
+  const ownerCookie=cookie;
+  let [response]=await req('/api/store/purchase',{method:'POST',body:JSON.stringify({productId:'gift-donut-pack',requestId:'donut-purchase-test'})});assert.equal(response.status,200);
+  [response]=await req('/api/lobby/donut-packs/share',{method:'POST'});assert.equal(response.status,201);
+  const [,messages]=await req('/api/lobby/messages?limit=100');const packItem=messages.items.find(item=>item.kind==='donut-pack');assert.ok(packItem);
+  cookie='';const [registered]=await req('/api/register',{method:'POST',body:JSON.stringify({username:'PaketAcan',password:'Guvenli123',passwordRepeat:'Guvenli123'})});cookie=registered.headers.get('set-cookie').split(';')[0];const [claim,claimResult]=await req('/api/lobby/donut-packs/claim',{method:'POST',body:JSON.stringify({packId:packItem.donutPack.packId})});assert.equal(claim.status,200);assert.ok(claimResult.amount>=50);await new Promise(resolve=>setTimeout(resolve,510));const [duplicate]=await req('/api/lobby/donut-packs/claim',{method:'POST',body:JSON.stringify({packId:packItem.donutPack.packId})});assert.equal(duplicate.status,409);
+  cookie=ownerCookie;const [selfClaim]=await req('/api/lobby/donut-packs/claim',{method:'POST',body:JSON.stringify({packId:packItem.donutPack.packId})});assert.equal(selfClaim.status,409);
 });
 
 test('lobide oyuncular gerçek hesapları arkadaş ekleyebilir ve durum profilde kalıcıdır', async () => {
