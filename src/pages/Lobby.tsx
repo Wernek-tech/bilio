@@ -100,11 +100,12 @@ export default function Lobby() {
     catch {
         setErr('Lobi bağlantısı yenileniyor…');
     } }; es.onerror = () => setErr('Lobi bağlantısı yenileniyor…'); return () => es.close(); }, [load]);
-    const STICK_TO_BOTTOM_PX = 120; // ponytail: only auto-follow if the reader was already near the bottom
+    const STICK_TO_BOTTOM_PX = 120; // ponytail: always jump to bottom on first load; after that, only follow if the reader was already near the bottom.
+    const didInitialScroll = useRef(false);
     useEffect(() => {
         const scroller = bottom.current?.parentElement;
-        const wasNearBottom = !scroller || scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < STICK_TO_BOTTOM_PX;
-        if (wasNearBottom) bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+        const wasNearBottom = !didInitialScroll.current || !scroller || scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < STICK_TO_BOTTOM_PX;
+        if (wasNearBottom) { bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' }); didInitialScroll.current = true; }
     }, [items.length]);
     useEffect(() => { const close = () => setActiveMessage(null); document.addEventListener('click', close); return () => document.removeEventListener('click', close); }, []);
     const send = async (e?: FormEvent) => { e?.preventDefault(); if (!auth.user) {
