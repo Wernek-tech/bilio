@@ -3641,7 +3641,12 @@
         "gifts": [],
         "achievements": []
       },
-      "inventory": [],
+      "inventory": [
+        {
+          "productId": "frame-melek-kanatlari",
+          "quantity": 1
+        }
+      ],
       "stats": {
         "matches": 0,
         "wins": 0,
@@ -3673,7 +3678,64 @@
           "readAt": null
         }
       ],
-      "blockedUsers": []
+      "blockedUsers": [],
+      "likesReceived": []
+    },
+    {
+      "id": "5940eb64-95ac-48d8-9b9e-3f6b67fadc68",
+      "username": "titletest13240",
+      "usernameNormalized": "titletest13240",
+      "passwordHash": "a1e66df2663abd2c97bc39dbcbb71f39:51f80e1b5e418d1f8f01406df98f553ca9544601a2cafcd58cb4faf605e26c356d839281c6304f93dc6e73a616d942aab80762db6f40b54b080bde3eba27ac57",
+      "createdAt": "2026-09-01T21:13:35.201Z",
+      "lastLoginAt": "2026-09-01T21:13:35.201Z",
+      "level": 1,
+      "xp": 0,
+      "selectedTitleId": "title-1",
+      "gold": 5000,
+      "diamonds": 1000,
+      "registrationRewardGranted": true,
+      "friends": [],
+      "profile": {
+        "about": "",
+        "avatarUrl": "",
+        "selectedFrameId": null,
+        "selectedBadgeIds": [],
+        "badges": [],
+        "gifts": [],
+        "achievements": []
+      },
+      "inventory": [],
+      "stats": {
+        "matches": 0,
+        "wins": 0,
+        "correct": 0,
+        "score": 0
+      },
+      "weekly": {
+        "score": 0,
+        "victories": 0,
+        "updatedAt": null
+      },
+      "messages": [
+        {
+          "id": "bd795746-8c1b-4680-b9c6-e9c00b17164a",
+          "sender": "Bilio",
+          "title": "Bilio'ya hoş geldin!",
+          "body": "Bilio’ya hoş geldin! Kayıt olduğun için teşekkür eder, iyi eğlenceler dileriz.",
+          "details": "Kayıt ödüllerin: 5.000 altın ve 1.000 elmas.",
+          "createdAt": "2026-09-01T21:13:35.201Z",
+          "readAt": null
+        }
+      ],
+      "notifications": [
+        {
+          "id": "392e13ec-e11b-460c-9076-8a134bc25e78",
+          "title": "Kayıt ödüllerin hazır!",
+          "body": "5.000 altın ve 1.000 elmas hesabına eklendi.",
+          "createdAt": "2026-09-01T21:13:35.201Z",
+          "readAt": null
+        }
+      ]
     }
   ],
   "sessions": {
@@ -3731,17 +3793,21 @@
     "d5b5a9486356383c4b9dc44a7fcc1434362c9fb7c6a76861281f1dc683c8fb0d": {
       "userId": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
       "createdAt": 1788293977156,
-      "lastSeenAt": 1788295863341
+      "lastSeenAt": 1788297214380
     },
     "952253748984fe1218b38ceb7c35fa638664ebb23f0a9a2084cd2a4161b38eeb": {
       "userId": "44c04285-4e0c-4148-bc6b-c791af8938ee",
       "createdAt": 1788294128775,
-      "lastSeenAt": 1788295862737
+      "lastSeenAt": 1788297215200
     },
     "66a65aa3e7ea4fc4cfa3cd50f8f983e1fc3a7e757fefe4095f920300e0afe36c": {
       "userId": "b6606889-87f3-43eb-85ea-dc70b5c59142",
       "createdAt": 1788295864798,
       "lastSeenAt": 1788295864907
+    },
+    "d664603b0889022d030a3e77f300e9c5799d9e51c6ee313b47c956be8e5a0ab1": {
+      "userId": "5940eb64-95ac-48d8-9b9e-3f6b67fadc68",
+      "createdAt": 1788297215200
     }
   },
   "lobbyMessages": [
