@@ -30,7 +30,7 @@ export default function Leaderboard() {
   }, [auth.user?.id]);
 
   const top = rows.slice(0, 3);
-  const rest = rows.slice(3);
+  const rest = rows;
   const podium = top;
 
   return <SiteShell><div className="page-body leaderboard-page">

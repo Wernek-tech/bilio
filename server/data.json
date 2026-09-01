@@ -6,9 +6,9 @@
       "usernameNormalized": "arie",
       "passwordHash": "b8a8925852b5d2ba2f84d4c8ff0d5710:06e8989e8dece49870a08d3bbf532ce30ec29ef266080c235ce2f5854fc6ccc16725d434bd114844c1d88bf42dd06449bb5c294cf49d9826d707770ceec8e932",
       "createdAt": "2026-08-31T08:14:34.410Z",
-      "lastLoginAt": "2026-09-01T13:17:47.600Z",
+      "lastLoginAt": "2026-09-01T16:06:27.269Z",
       "level": 2,
-      "xp": 250,
+      "xp": 370,
       "selectedTitleId": "title-1",
       "gold": 0,
       "diamonds": 1090,
@@ -43,20 +43,27 @@
           "title": "Maç XP ödülün hazır",
           "body": "Bu maçtan 400 XP kazandın.",
           "createdAt": "2026-09-01T13:09:31.972Z",
-          "readAt": null
+          "readAt": "2026-09-01T16:06:46.120Z"
         },
         {
           "id": "2573496b-963b-4cf3-8418-74ba17e14189",
           "title": "Maç XP ödülün hazır",
           "body": "Bu maçtan 400 XP kazandın.",
           "createdAt": "2026-09-01T13:10:28.983Z",
-          "readAt": null
+          "readAt": "2026-09-01T16:06:41.393Z"
         },
         {
           "id": "568d17a0-71a0-4855-b92e-19e33e12b3cc",
           "title": "Satın alma tamamlandı",
           "body": "Paylaşımlı Donut Paketi hesabına eklendi.",
           "createdAt": "2026-09-01T13:16:41.519Z",
+          "readAt": "2026-09-01T16:06:40.554Z"
+        },
+        {
+          "id": "abffc9be-dab9-4761-9fac-4b5d5e673218",
+          "title": "Maç XP ödülün hazır",
+          "body": "Bu maçtan 120 XP kazandın.",
+          "createdAt": "2026-09-01T16:10:20.810Z",
           "readAt": null
         }
       ],
@@ -384,28 +391,29 @@
           {
             "id": "ach-score-10000",
             "name": "On Bin Puan",
-            "progress": 1790,
+            "progress": 2760,
             "target": 10000,
             "unlocked": false
           }
         ]
       },
       "stats": {
-        "matches": 3,
+        "matches": 4,
         "wins": 2,
         "correct": 2,
-        "score": 1790
+        "score": 2760
       },
       "weekly": {
-        "score": 1790,
+        "score": 2760,
         "victories": 2,
-        "updatedAt": "2026-09-01T13:10:28.983Z"
+        "updatedAt": "2026-09-01T16:10:20.809Z"
       },
       "registrationRewardGranted": true,
       "friends": [
         "323fa82b-3fea-44b9-93c5-a5fa1756127b"
       ],
-      "likesReceived": []
+      "likesReceived": [],
+      "blockedUsers": []
     },
     {
       "id": "e8a83eb9-b30a-48e4-9084-6977f973a5a6",
@@ -782,7 +790,8 @@
       "friends": [
         "c4cd32b2-0602-45ca-8839-c0062e33847f"
       ],
-      "likesReceived": []
+      "likesReceived": [],
+      "blockedUsers": []
     },
     {
       "id": "c4cd32b2-0602-45ca-8839-c0062e33847f",
@@ -792,7 +801,7 @@
       "createdAt": "2026-08-31T14:51:59.931Z",
       "lastLoginAt": "2026-09-01T13:18:21.824Z",
       "level": 1,
-      "xp": 0,
+      "xp": 400,
       "selectedTitleId": "title-1",
       "gold": 5000,
       "diamonds": 1350,
@@ -808,7 +817,7 @@
             "name": "İlk Adım",
             "requirement": "İlk maçını tamamla",
             "assetPath": "/badges/assets/badge-01.png",
-            "owned": false,
+            "owned": true,
             "equipped": false
           },
           {
@@ -864,7 +873,7 @@
             "name": "İlk Zafer",
             "requirement": "İlk galibiyetini kazan",
             "assetPath": "/badges/assets/badge-08.png",
-            "owned": false,
+            "owned": true,
             "equipped": false
           },
           {
@@ -984,7 +993,7 @@
             "name": "Puan Başlangıcı",
             "requirement": "1.000 toplam puana ulaş",
             "assetPath": "/badges/assets/badge-23.png",
-            "owned": false,
+            "owned": true,
             "equipped": false
           },
           {
@@ -1097,14 +1106,14 @@
           {
             "id": "ach-match-1",
             "name": "İlk Maç",
-            "progress": 0,
+            "progress": 1,
             "target": 1,
-            "unlocked": false
+            "unlocked": true
           },
           {
             "id": "ach-win-10",
             "name": "On Galibiyet",
-            "progress": 0,
+            "progress": 1,
             "target": 10,
             "unlocked": false
           },
@@ -1118,7 +1127,7 @@
           {
             "id": "ach-score-10000",
             "name": "On Bin Puan",
-            "progress": 0,
+            "progress": 1612,
             "target": 10000,
             "unlocked": false
           }
@@ -1126,15 +1135,15 @@
       },
       "inventory": [],
       "stats": {
-        "matches": 0,
-        "wins": 0,
+        "matches": 1,
+        "wins": 1,
         "correct": 0,
-        "score": 0
+        "score": 1612
       },
       "weekly": {
-        "score": 0,
-        "victories": 0,
-        "updatedAt": null
+        "score": 1612,
+        "victories": 1,
+        "updatedAt": "2026-09-01T16:06:04.773Z"
       },
       "messages": [
         {
@@ -1161,12 +1170,20 @@
           "body": "Donut paketinden 350 elmas çıktı.",
           "createdAt": "2026-09-01T13:18:28.641Z",
           "readAt": "2026-09-01T14:16:30.200Z"
+        },
+        {
+          "id": "17bcb3bd-51c6-4ecf-913d-023770b7f6eb",
+          "title": "Maç XP ödülün hazır",
+          "body": "Bu maçtan 400 XP kazandın.",
+          "createdAt": "2026-09-01T16:06:04.773Z",
+          "readAt": null
         }
       ],
       "friends": [
         "e8a83eb9-b30a-48e4-9084-6977f973a5a6"
       ],
-      "likesReceived": []
+      "likesReceived": [],
+      "blockedUsers": []
     },
     {
       "id": "308e2ea9-7518-49a3-9e13-f6c31781cb8e",
@@ -1223,7 +1240,8 @@
         }
       ],
       "friends": [],
-      "likesReceived": []
+      "likesReceived": [],
+      "blockedUsers": []
     },
     {
       "id": "f7a88119-13d9-448b-b143-55f449899ae2",
@@ -1598,7 +1616,8 @@
         }
       ],
       "friends": [],
-      "likesReceived": []
+      "likesReceived": [],
+      "blockedUsers": []
     },
     {
       "id": "8fecf1f3-dc78-4220-bad5-8a0f386cabd4",
@@ -1721,7 +1740,8 @@
         }
       ],
       "friends": [],
-      "likesReceived": []
+      "likesReceived": [],
+      "blockedUsers": []
     },
     {
       "id": "323fa82b-3fea-44b9-93c5-a5fa1756127b",
@@ -2105,7 +2125,8 @@
           "readAt": null
         }
       ],
-      "likesReceived": []
+      "likesReceived": [],
+      "blockedUsers": []
     },
     {
       "id": "1654caf5-9a67-45f5-9b4a-91060da5293f",
@@ -2479,7 +2500,9 @@
           "createdAt": "2026-09-01T08:36:30.406Z",
           "readAt": "2026-09-01T08:37:14.995Z"
         }
-      ]
+      ],
+      "likesReceived": [],
+      "blockedUsers": []
     }
   ],
   "sessions": {
@@ -2501,7 +2524,8 @@
     },
     "691711d8951e04717fedddef57612b10d781d3f6b15fe0eabda289a99ba6156e": {
       "userId": "8fecf1f3-dc78-4220-bad5-8a0f386cabd4",
-      "createdAt": 1788198608138
+      "createdAt": 1788198608138,
+      "lastSeenAt": 1788278979863
     },
     "1a6570de16e1142f2d38e7fb3ff3af85e40adff93ea44f1f2b5f533ebf6e28fc": {
       "userId": "323fa82b-3fea-44b9-93c5-a5fa1756127b",
@@ -2511,9 +2535,10 @@
       "userId": "1654caf5-9a67-45f5-9b4a-91060da5293f",
       "createdAt": 1788251790405
     },
-    "3c304618891674a0f120cd795457e1163f87bfa8e80c3c5ab49fd869704c6260": {
-      "userId": "c4cd32b2-0602-45ca-8839-c0062e33847f",
-      "createdAt": 1788268701799
+    "ff1d4d2599f3ce8f3d83e88e44c108d8913cdb901c30fa2eeaca010c8642c892": {
+      "userId": "c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
+      "createdAt": 1788278787245,
+      "lastSeenAt": 1788279020310
     }
   },
   "lobbyMessages": [
@@ -3123,6 +3148,24 @@
       "packId": "b2a118d6-1339-405c-86b4-dc19d1893919",
       "diamonds": 350,
       "createdAt": "2026-09-01T13:18:28.641Z"
+    },
+    {
+      "id": "f6d77876-57de-4b99-abc0-406b93a62390",
+      "requestId": "quiz-reward:9bec9a1f-c5b3-40fc-8fb5-2c805277cfb3:c4cd32b2-0602-45ca-8839-c0062e33847f",
+      "userId": "c4cd32b2-0602-45ca-8839-c0062e33847f",
+      "type": "quiz-reward",
+      "matchId": "9bec9a1f-c5b3-40fc-8fb5-2c805277cfb3",
+      "xp": 400,
+      "createdAt": "2026-09-01T16:06:04.773Z"
+    },
+    {
+      "id": "a4eae947-0ccb-4496-abf9-b773709c3e73",
+      "requestId": "quiz-reward:60e0f8d9-03b9-4d73-8ac4-338612eb821d:c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
+      "userId": "c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
+      "type": "quiz-reward",
+      "matchId": "60e0f8d9-03b9-4d73-8ac4-338612eb821d",
+      "xp": 120,
+      "createdAt": "2026-09-01T16:10:20.810Z"
     }
   ],
   "weeklyArchives": [],
@@ -3167,5 +3210,6 @@
       "createdAt": "2026-09-01T13:16:51.654Z",
       "expiresAt": 1788355011654
     }
-  ]
+  ],
+  "privateMessages": []
 }
