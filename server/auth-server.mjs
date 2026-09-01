@@ -9,6 +9,7 @@ import {bilMatches,createBilRoom,bilRoomByCode,bilRoomForUser,joinBilRoom,leaveB
 import {BOT_PROFILES,botReply} from './bots.mjs';
 import {quizRooms,quizRoomForUser,quizRoomByCode,createQuizRoom,joinQuizRoom,leaveQuizRoom,updateQuizSettings,addQuizBots,addQuizChat,startQuiz,answerQuiz,publicQuizRoom} from './quiz-store.mjs';
 import {createDonutRewards} from './donut-pack.mjs';
+import {HANGMAN_LETTER_COST,addHangmanBots,addHangmanChat,buyHangmanLetter,createHangmanRoom,guessHangmanLetter,hangmanRoomByCode,hangmanRoomForUser,joinHangmanRoom,leaveHangmanRoom,publicHangmanRoom,startHangman,tickHangman,updateHangmanSettings} from './hangman-store.mjs';
 
 const PORT=Number(process.env.BILIO_API_PORT||8787),dbPath=path.resolve(process.env.BILIO_DB_PATH||'server/data.json');
 fs.mkdirSync(path.dirname(dbPath),{recursive:true});let db={users:[],sessions:{},lobbyMessages:[],lobbyInvites:[],transactions:[],weeklyArchives:[],meta:{}};try{db={...db,...JSON.parse(fs.readFileSync(dbPath,'utf8'))}}catch{}
@@ -116,6 +117,8 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
   if(vampireRoom){const current=roomForUser(me.id);if(current&&current.id!==vampireRoom.id)return send(res,409,{error:'Önce mevcut Vampir Köylü odanızdan ayrılmalısınız.'});joinRoom(vampireRoom,me);touchPlayer(vampireRoom,me);return send(res,200,{path:'/oyun/vampir-koylu'});}
   const quizRoom=quizRoomByCode(code);
   if(quizRoom){const current=quizRoomForUser(me.id,quizRoom.kind);if(current&&current.id!==quizRoom.id)leaveQuizRoom(current,me.id);joinQuizRoom(quizRoom,me);const paths={song:'/oyun/sarkiyi-bil',celebrity:'/oyun/tahmin-et-kim',streamer:'/oyun/yayinci-kim'};return send(res,200,{path:paths[quizRoom.kind]});}
+  const hangmanRoom=hangmanRoomByCode(code);
+  if(hangmanRoom){const current=hangmanRoomForUser(me.id);if(current&&current.id!==hangmanRoom.id)return send(res,409,{error:'Önce mevcut Adam Asmaca odanızdan ayrılmalısınız.'});joinHangmanRoom(hangmanRoom,me);return send(res,200,{path:'/oyun/adam-asmaca'});}
   return send(res,404,{error:'Bu kodla eşleşen aktif bir oda bulunamadı.'});
  }
  if(url.pathname==='/api/messages'&&req.method==='GET'){if(!me)return send(res,401,{error:'Giriş gerekli.'});return send(res,200,{items:[...me.messages].sort((a,b)=>b.createdAt.localeCompare(a.createdAt))})}
@@ -145,6 +148,24 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
 
 
  if(url.pathname.startsWith('/api/game/quiz/')){if(!me)return send(res,401,{error:'Giriş gerekli.'});const parts=url.pathname.split('/'),kind=parts[4],action=parts[5]||'active';let room=quizRoomForUser(me.id,kind);if(action==='active'&&req.method==='GET')return send(res,200,{room:room?publicQuizRoom(room):null});if(action==='create'&&req.method==='POST'){room=createQuizRoom(kind,me);return send(res,200,{room:publicQuizRoom(room)})}if(action==='join'&&req.method==='POST'){const b=await body(req),target=quizRoomByCode(b.code);if(!target||target.kind!==kind)return send(res,404,{error:'Oda bulunamadı.'});if(room&&room.id!==target.id)leaveQuizRoom(room,me.id);room=joinQuizRoom(target,me);return send(res,200,{room:publicQuizRoom(room)})}if(!room)return send(res,404,{error:'Aktif oda yok.'});if(action==='leave'&&req.method==='POST'){leaveQuizRoom(room,me.id);return send(res,200,{ok:true})}if(action==='settings'&&req.method==='POST')return send(res,200,{room:publicQuizRoom(updateQuizSettings(room,me.id,await body(req)))});if(action==='invite-bots'&&req.method==='POST'){const added=addQuizBots(room,me.id);return send(res,200,{added,room:publicQuizRoom(room)})}if(action==='chat'&&req.method==='POST'){rate(`quiz:${me.id}`);const b=await body(req);return send(res,200,{room:publicQuizRoom(addQuizChat(room,me,b.content))})}if(action==='start'&&req.method==='POST')return send(res,200,{room:publicQuizRoom(startQuiz(room,me.id))});if(action==='answer'&&req.method==='POST'){const b=await body(req),correct=answerQuiz(room,me.id,b.questionIndex,b.choice);return send(res,200,{correct,room:publicQuizRoom(room)})}return send(res,404,{error:'Quiz işlemi bulunamadı.'})}
+
+ if(url.pathname.startsWith('/api/game/hangman/')){
+  if(!me)return send(res,401,{error:'Giriş gerekli.'});
+  const action=url.pathname.split('/')[4]||'active';let room=hangmanRoomForUser(me.id);
+  const settle=()=>{if(!room||room.status!=='ENDED'||room.rewardsSettled)return;const sorted=[...room.players].sort((a,b)=>b.score-a.score);for(const player of sorted){if(player.bot)continue;const user=db.users.find(item=>item.id===player.userId);if(!user)continue;const rank=sorted.findIndex(item=>item.userId===player.userId)+1,xp=rank===1?300:rank<=3?180:100;applyXp(user,xp);user.stats.matches=(user.stats.matches||0)+1;user.stats.score=(user.stats.score||0)+player.score;if(rank===1)user.stats.wins=(user.stats.wins||0)+1;user.weekly.score=(user.weekly.score||0)+player.score;user.weekly.victories=(user.weekly.victories||0)+(rank===1?1:0);user.weekly.updatedAt=nowIso();}room.rewardsSettled=true;save();};
+  if(action==='active'&&req.method==='GET'){if(room)tickHangman(room);settle();return send(res,200,{room:room?publicHangmanRoom(room):null});}
+  if(action==='create'&&req.method==='POST'){room=room||createHangmanRoom(me);return send(res,200,{room:publicHangmanRoom(room)});}
+  if(action==='join'&&req.method==='POST'){const target=hangmanRoomByCode((await body(req)).code);if(!target)return send(res,404,{error:'Adam Asmaca odası bulunamadı.'});if(room&&room.id!==target.id)leaveHangmanRoom(room,me.id);room=joinHangmanRoom(target,me);return send(res,200,{room:publicHangmanRoom(room)});}
+  if(!room)return send(res,404,{error:'Aktif Adam Asmaca odası yok.'});
+  if(action==='leave'&&req.method==='POST'){leaveHangmanRoom(room,me.id);return send(res,200,{ok:true});}
+  if(action==='settings'&&req.method==='POST')return send(res,200,{room:publicHangmanRoom(updateHangmanSettings(room,me.id,await body(req)))});
+  if(action==='invite-bots'&&req.method==='POST'){const added=addHangmanBots(room,me.id);return send(res,200,{added,room:publicHangmanRoom(room)});}
+  if(action==='chat'&&req.method==='POST'){rate(`hangman-chat:${me.id}`);return send(res,200,{room:publicHangmanRoom(addHangmanChat(room,me,(await body(req)).content))});}
+  if(action==='start'&&req.method==='POST'){startHangman(room,me.id);return send(res,200,{room:publicHangmanRoom(room)});}
+  if(action==='guess'&&req.method==='POST'){const result=guessHangmanLetter(room,me.id,(await body(req)).letter);settle();return send(res,200,{result,room:publicHangmanRoom(room)});}
+  if(action==='buy-letter'&&req.method==='POST'){if(me.gold<HANGMAN_LETTER_COST)return send(res,409,{error:'Harf almak için yeterli altının yok.'});const result=buyHangmanLetter(room,me.id);me.gold-=result.cost;save();settle();return send(res,200,{result,room:publicHangmanRoom(room),user:publicUser(me)});}
+  return send(res,404,{error:'Adam Asmaca işlemi bulunamadı.'});
+ }
 
  // Bil Bakalım uses only authenticated, real room members. Server is authoritative for room state, board, turns and rewards.
  if(!me&&url.pathname.startsWith('/api/game/bil-bakalim'))return send(res,401,{error:'Giriş gerekli.'});

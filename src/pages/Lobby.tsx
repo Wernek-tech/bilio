@@ -11,7 +11,7 @@ type DonutPack = {
     remainingDiamonds: number;
     expiresAt: number;
 };
-// ponytail: cap live lobby history client-side — an all-day-open tab would otherwise grow this array forever.
+// ponytail: cap live lobby history client-side.
 const MAX_LOBBY_ITEMS = 45;
 type Msg = {
     id: string;
