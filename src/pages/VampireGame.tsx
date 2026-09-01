@@ -2,6 +2,7 @@ import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../auth/auth';
 import {vampireSeatPosition} from '../vampire/seatLayout.js';
+import PlayerAvatar from '../components/PlayerAvatar';
 
 type ChatMessage = {id: string; username?: string; system?: boolean; content: string};
 type RoomPlayer = {userId: string; username: string; ready: boolean; connected?: boolean; avatarUrl?: string; frameId?: string | null; bot?: boolean};
@@ -36,9 +37,7 @@ const roleName = (role: string) => roleNames[role] || role;
 const phaseName = (phase: string) => phaseNames[phase] || phase;
 
 function Avatar({player, dead = false}: {player: {username: string; avatarUrl?: string; frameId?: string | null}; dead?: boolean}) {
-  return <div className={`vk-avatar ${dead ? 'dead' : ''} ${player.frameId ? 'framed' : ''}`} data-frame={player.frameId || undefined}>
-    {player.avatarUrl ? <img src={player.avatarUrl} alt=""/> : <span>{player.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</span>}
-  </div>;
+  return <PlayerAvatar className={`vk-avatar ${dead ? 'dead' : ''}`} username={player.username} avatarUrl={player.avatarUrl} frameId={player.frameId}/>;
 }
 
 export default function VampireGame() {

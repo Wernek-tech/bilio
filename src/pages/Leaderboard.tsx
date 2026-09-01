@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react';
 import SiteShell from '../components/SiteShell';
 import {api, useAuth} from '../auth/auth';
 import {titles} from '../data/titles';
+import PlayerAvatar from '../components/PlayerAvatar';
 
 type Row = {rank: number; userId: string; username: string; score: number; victories: number; level: number; titleId?: string; frameId?: string|null; avatarUrl?: string};
 const format = (value: number) => new Intl.NumberFormat('tr-TR').format(value);
@@ -9,7 +10,7 @@ const format = (value: number) => new Intl.NumberFormat('tr-TR').format(value);
 function PlayerIdentity({row}: {row: Row}) {
   const title = row.titleId ? titles.find(item => item.id === row.titleId) : null;
   return <div className="rank-player">
-    <div className="mini-avatar">{row.avatarUrl ? <img src={row.avatarUrl} alt={`${row.username} profil resmi`}/> : row.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</div>
+    <PlayerAvatar className="mini-avatar" username={row.username} avatarUrl={row.avatarUrl} frameId={row.frameId}/>
     <b title={row.username}>{row.username}</b>
     {title && <img src={title.assetPath} alt={`${title.name} unvanı`}/>} 
   </div>;
@@ -40,7 +41,7 @@ export default function Leaderboard() {
     </section> : <>
       <div className={`leaderboard-podium-v10 entries-${podium.length}`}>{podium.map(row => <article key={row.userId} className={`leaderboard-card-v10 rank-${row.rank}`}>
         <span className="leaderboard-rank-v10">{row.rank}</span>
-        <div className="leaderboard-avatar-v10">{row.avatarUrl ? <img src={row.avatarUrl} alt={`${row.username} profil resmi`}/> : row.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</div>
+        <PlayerAvatar className="leaderboard-avatar-v10" username={row.username} avatarUrl={row.avatarUrl} frameId={row.frameId}/>
         <b>{row.username}</b>
         {row.titleId && <img className="title-art" src={(titles.find(t => t.id === row.titleId) || titles[0]).assetPath} alt="Kuşanılmış unvan"/>}
         <strong>{format(row.score)} PUAN</strong><small>SEVİYE {row.level} · {row.victories} GALİBİYET</small>

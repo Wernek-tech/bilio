@@ -3,6 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {api, useAuth} from '../auth/auth';
 import {titles} from '../data/titles';
 import {createRequestId} from '../utils/requestId';
+import PlayerAvatar from '../components/PlayerAvatar';
 
 type Player = {
   userId: string;
@@ -69,11 +70,7 @@ function TitleArt({id}: {id?: string}) {
 }
 
 function Avatar({player, large = false}: {player: Player; large?: boolean}) {
-  return <div className={`bb-avatar-frame${large ? ' large' : ''}${player.frameId ? ' equipped' : ''}`} data-frame={player.frameId || undefined}>
-    <div className="bb-avatar-real">
-      {player.avatarUrl ? <img src={player.avatarUrl} alt={`${player.username} profil resmi`}/> : <span>{player.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</span>}
-    </div>
-  </div>;
+  return <PlayerAvatar className={`bb-avatar-frame${large ? ' large' : ''}`} username={player.username} avatarUrl={player.avatarUrl} frameId={player.frameId}/>;
 }
 
 function RoomChat({room, chat, busy, onChatChange, onSubmit, compact = false}: {room: Room; chat: string; busy: boolean; onChatChange: (value: string) => void; onSubmit: (event: FormEvent) => void; compact?: boolean}) {

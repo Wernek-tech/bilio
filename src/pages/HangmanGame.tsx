@@ -2,6 +2,7 @@ import {FormEvent,useCallback,useEffect,useMemo,useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {api,useAuth} from '../auth/auth';
 import {titles} from '../data/titles';
+import PlayerAvatar from '../components/PlayerAvatar';
 
 type Player={userId:string;username:string;avatarUrl:string;frameId:string|null;titleId:string;level:number;bot:boolean;seat:number;score:number};
 type Message={id:string;userId:string;username:string;avatarUrl:string;bot:boolean;content:string;createdAt:number};
@@ -10,7 +11,7 @@ type Room={id:string;code:string;hostUserId:string;status:'LOBBY'|'PLAYING'|'END
 const alphabet='ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ'.split('');
 const gameApi=async<T,>(action:string,method='GET',data?:unknown)=>api<T>(`/game/hangman/${action}`,{method,body:data?JSON.stringify(data):undefined});
 function Title({id}:{id:string}){if(id==='bilio-bot')return <img className="hm-title bot" src="/assets/bilio-logo.png" alt="Bilio botu"/>;const title=titles.find(item=>item.id===id)||titles[0];return <img className="hm-title" src={title.assetPath} alt={`${title.name} unvanı`}/>}
-function Avatar({player}:{player:Player}){return <div className={`hm-avatar ${player.frameId==='frame-donut'?'donut':''}`}>{player.avatarUrl?<img src={player.avatarUrl} alt=""/>:player.username.slice(0,1).toLocaleUpperCase('tr-TR')}</div>}
+function Avatar({player}:{player:Player}){return <PlayerAvatar className={`hm-avatar ${player.frameId==='frame-donut'?'donut':''}`} username={player.username} avatarUrl={player.avatarUrl} frameId={player.frameId}/>}
 function HangmanDrawing({wrong}:{wrong:number}){return <svg className="hm-drawing" viewBox="0 0 420 420" role="img" aria-label={`${wrong}/6 hata`}><path className="gallows" d="M65 385H280M115 385V45H300M115 95L165 45M300 45V105"/>{wrong>0&&<circle cx="300" cy="142" r="37"/>}{wrong>1&&<path d="M300 179V275"/>}{wrong>2&&<path d="M300 204L245 245"/>}{wrong>3&&<path d="M300 204L355 245"/>}{wrong>4&&<path d="M300 275L255 345"/>}{wrong>5&&<path d="M300 275L345 345"/>}</svg>}
 function Chat({room,text,setText,send}:{room:Room;text:string;setText:(value:string)=>void;send:(event:FormEvent)=>void}){return <section className="hm-chat"><h2>ODA SOHBETİ</h2><div className="hm-chat-list">{room.messages.length?room.messages.slice(-30).map(message=><p key={message.id}><span>{message.avatarUrl?<img src={message.avatarUrl} alt=""/>:message.username.slice(0,1)}</span><i><b>{message.username}</b>{message.content}</i></p>):<em>Henüz mesaj yok.</em>}</div><form onSubmit={send}><input aria-label="Sohbet mesajı" value={text} maxLength={500} placeholder="Mesajını yaz…" onChange={event=>setText(event.target.value)}/><button aria-label="Mesaj gönder">➤</button></form></section>}
 export default function HangmanGame(){
