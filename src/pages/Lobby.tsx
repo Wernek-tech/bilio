@@ -11,6 +11,8 @@ type DonutPack = {
     remainingDiamonds: number;
     expiresAt: number;
 };
+// ponytail: cap live lobby history client-side — an all-day-open tab would otherwise grow this array forever.
+const MAX_LOBBY_ITEMS = 45;
 type Msg = {
     id: string;
     kind: 'message' | 'invite' | 'donut-pack';
@@ -66,8 +68,8 @@ export default function Lobby() {
     const load = useCallback(async () => { try {
         const messages = await api<{
             items: Msg[];
-        }>('/lobby/messages?limit=100');
-        setItems(messages.items.filter(item => item && item.id));
+        }>('/lobby/messages?limit=' + MAX_LOBBY_ITEMS);
+        setItems(messages.items.filter(item => item && item.id).slice(-MAX_LOBBY_ITEMS));
         if (userId) {
             setFriends((await api<{
                 items: Friend[];
@@ -91,8 +93,9 @@ export default function Lobby() {
     useEffect(() => { void load(); const es = new EventSource('/api/lobby/events'); es.onmessage = e => { try {
         const d = JSON.parse(e.data);
         if (d.type === 'lobby-item' && d.item?.id)
-            setItems(v => { const found = v.findIndex(x => x.id === d.item.id); if (found < 0)
-                return [...v, d.item]; const next = [...v]; next[found] = d.item; return next; });
+            setItems(v => { const found = v.findIndex(x => x.id === d.item.id); if (found < 0) {
+                const next = [...v, d.item]; return next.length > MAX_LOBBY_ITEMS ? next.slice(next.length - MAX_LOBBY_ITEMS) : next;
+            } const next = [...v]; next[found] = d.item; return next; });
     }
     catch {
         setErr('Lobi bağlantısı yenileniyor…');
