@@ -11,8 +11,6 @@ type DonutPack = {
     remainingDiamonds: number;
     expiresAt: number;
 };
-// ponytail: cap live lobby history client-side.
-const MAX_LOBBY_ITEMS = 45;
 type Msg = {
     id: string;
     kind: 'message' | 'invite' | 'donut-pack';
@@ -34,6 +32,9 @@ type Msg = {
 };
 type Friend = {
     userId: string;
+    username?: string;
+    avatarUrl?: string;
+    online?: boolean;
     mutualCount: number;
 };
 type PublicProfile = {
@@ -68,8 +69,8 @@ export default function Lobby() {
     const load = useCallback(async () => { try {
         const messages = await api<{
             items: Msg[];
-        }>('/lobby/messages?limit=' + MAX_LOBBY_ITEMS);
-        setItems(messages.items.filter(item => item && item.id).slice(-MAX_LOBBY_ITEMS));
+        }>('/lobby/messages?limit=40');
+        setItems(messages.items.filter(item => item && item.id).slice(-40));
         if (userId) {
             setFriends((await api<{
                 items: Friend[];
@@ -93,22 +94,23 @@ export default function Lobby() {
     useEffect(() => { void load(); const es = new EventSource('/api/lobby/events'); es.onmessage = e => { try {
         const d = JSON.parse(e.data);
         if (d.type === 'lobby-item' && d.item?.id)
-            setItems(v => { const found = v.findIndex(x => x.id === d.item.id); if (found < 0) {
-                const next = [...v, d.item]; return next.length > MAX_LOBBY_ITEMS ? next.slice(next.length - MAX_LOBBY_ITEMS) : next;
-            } const next = [...v]; next[found] = d.item; return next; });
+            setItems(v => { const found = v.findIndex(x => x.id === d.item.id); if (found < 0)
+                return [...v, d.item].slice(-40); const next = [...v]; next[found] = d.item; return next.slice(-40); });
     }
     catch {
         setErr('Lobi bağlantısı yenileniyor…');
     } }; es.onerror = () => setErr('Lobi bağlantısı yenileniyor…'); return () => es.close(); }, [load]);
+    
     const STICK_TO_BOTTOM_PX = 120; // ponytail: always jump to bottom on first load; after that, only follow if the reader was already near the bottom.
     const didInitialScroll = useRef(false);
     useEffect(() => {
-        if (items.length === 0) return;
+        if (!items.length) return;
         const scroller = bottom.current?.parentElement;
         const wasNearBottom = !didInitialScroll.current || !scroller || scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < STICK_TO_BOTTOM_PX;
         if (wasNearBottom) { bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' }); didInitialScroll.current = true; }
     }, [items.length]);
     useEffect(() => { const close = () => setActiveMessage(null); document.addEventListener('click', close); return () => document.removeEventListener('click', close); }, []);
+    useEffect(() => { const openPrivate = (event: Event) => { const target = event.target as HTMLElement; if (!target.closest('.player-actions-popover small') || !activeMessage) return; const message = items.find(item => item.id === activeMessage); if (message?.userId) { event.stopPropagation(); window.dispatchEvent(new CustomEvent('bilio:message-user', {detail: {userId: message.userId}})); setActiveMessage(null); } }; document.addEventListener('click', openPrivate); return () => document.removeEventListener('click', openPrivate); }, [activeMessage, items]);
     const send = async (e?: FormEvent) => { e?.preventDefault(); if (!auth.user) {
         setAuthOpen(true);
         return;

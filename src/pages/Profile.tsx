@@ -11,7 +11,7 @@ type ProfileData = {
   badges: {id: string; name: string; requirement: string; assetPath: string; owned: boolean; equipped: boolean}[];
   gifts: {id: string; name: string; quantity: number}[];
   achievements: {id: string; name: string; progress: number; target: number; unlocked: boolean}[];
-  ownedTitleIds: string[]; ownedFrames: {id: string; name: string}[];
+  ownedTitleIds: string[]; ownedFrames: {id: string; name: string; assetPath?: string}[];
 };
 type Friend = {userId: string; username: string; avatarUrl: string; titleId?: string; online: boolean; mutualCount: number};
 type PrivateMessage = {id: string; senderId: string; recipientId: string; content: string; createdAt: string};
@@ -41,6 +41,7 @@ function ProfileAvatar({profile, previewUrl, frameId}: {profile: ProfileData; pr
   const src = previewUrl || profile.avatarUrl;
   return <div className={`avatar-final ${frameId ? `frame-preview ${frameId}` : ''}`}>
     {src ? <img src={src} alt="Profil resmi"/> : <span>{profile.username.slice(0, 1).toLocaleUpperCase('tr-TR')}</span>}
+    {frameId==='frame-melek-kanatlari'&&<img className="ornamental-profile-frame" src="/assets/frames/frame-melek-kanatlari.png" alt="Melek Kanatları çerçevesi"/>}
     <i>{profile.level}</i>
   </div>;
 }
@@ -137,7 +138,7 @@ export default function Profile() {
     </section>
     <section className="stats-row">{[['Toplam Maç', profile.stats.matches], ['Galibiyet', profile.stats.wins], ['Galibiyet Oranı', `${winRate.toFixed(1)}%`], ['Doğru Cevap', profile.stats.correct], ['Toplam Puan', profile.stats.score]].map(([label, value]) => <article key={String(label)}><strong>{typeof value === 'number' ? format(value) : value}</strong><span>{label}</span></article>)}</section>
     <div className="profile-bottom">
-      <section className="profile-panel"><h2>ROZET VİTRİNİ <span>{equippedBadges.length}/5</span></h2><div className="badge-grid">{equippedBadges.length ? equippedBadges.map(item => <div key={item.id} className="badge-showcase-item" title={item.requirement}><img src={item.assetPath} alt={item.name}/><b>{item.name}</b></div>) : <p>Henüz vitrine rozet eklenmedi.</p>}</div><button onClick={() => {setBadgeDraft(equippedBadges.map(item => item.id)); setPanel('badges');}}>ROZETLERİ GÖR</button></section>
+      <section className="profile-panel"><h2>ROZET VİTRİNİ <span>{equippedBadges.length}/5</span></h2><div className="badge-grid">{equippedBadges.length ? equippedBadges.map(item => <div key={item.id} className="badge-showcase-item" title={item.requirement}><img src={item.assetPath} alt={item.name}/><b>{item.name}</b></div>) : <p>Henüz vitrine rozet eklenmedi.</p>}</div></section>
       <section className="profile-panel gifts-panel"><h2>HEDİYELERİM</h2><button onClick={() => setPanel('gifts')}>HEDİYELERİ GÖR</button>{profile.gifts.length ? <div className="gift-list">{profile.gifts.map(gift => <span key={gift.id}>{gift.name} × {gift.quantity}</span>)}</div> : <><p>Henüz bir hediyen bulunmuyor.</p><small>Oyun oynayarak veya etkinliklere katılarak hediyeler kazanabilirsin.</small></>}</section>
       <section className="profile-panel achievements"><h2>BAŞARIMLAR <span>{profile.badges.filter(item => item.owned).length}/{profile.badges.length}</span></h2><div className="achievement-badge-grid">{profile.badges.map(item => <button key={item.id} className={item.owned ? 'unlocked' : 'locked'} title={`${item.name} — ${item.requirement}`} onClick={() => {setBadgeDraft(equippedBadges.map(badge => badge.id)); setPanel('badges');}}><img src={item.assetPath} alt=""/><span>{item.name}</span></button>)}</div></section>
     </div>
