@@ -9,7 +9,7 @@ import {bilMatches,createBilRoom,bilRoomByCode,bilRoomForUser,joinBilRoom,leaveB
 import {BOT_PROFILES,botReply} from './bots.mjs';
 import {quizRooms,quizRoomForUser,quizRoomByCode,createQuizRoom,joinQuizRoom,leaveQuizRoom,updateQuizSettings,addQuizBots,addQuizChat,startQuiz,answerQuiz,publicQuizRoom} from './quiz-store.mjs';
 import {createDonutRewards} from './donut-pack.mjs';
-import {HANGMAN_LETTER_COST,addHangmanBots,addHangmanChat,buyHangmanLetter,createHangmanRoom,guessHangmanLetter,guessHangmanWord,hangmanRoomByCode,hangmanRoomForUser,joinHangmanRoom,leaveHangmanRoom,publicHangmanRoom,startHangman,tickHangman,updateHangmanSettings} from './hangman-store.mjs';
+import {HANGMAN_LETTER_COST,addHangmanBots,addHangmanChat,buyHangmanLetter,createHangmanRoom,guessHangmanLetter,hangmanRoomByCode,hangmanRoomForUser,joinHangmanRoom,leaveHangmanRoom,publicHangmanRoom,startHangman,tickHangman,updateHangmanSettings} from './hangman-store.mjs';
 
 const PORT=Number(process.env.BILIO_API_PORT||8787),dbPath=path.resolve(process.env.BILIO_DB_PATH||'server/data.json');
 fs.mkdirSync(path.dirname(dbPath),{recursive:true});let db={users:[],sessions:{},lobbyMessages:[],lobbyInvites:[],transactions:[],weeklyArchives:[],meta:{}};try{db={...db,...JSON.parse(fs.readFileSync(dbPath,'utf8'))}}catch{}
@@ -163,7 +163,6 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
   if(action==='chat'&&req.method==='POST'){rate(`hangman-chat:${me.id}`);return send(res,200,{room:publicHangmanRoom(addHangmanChat(room,me,(await body(req)).content))});}
   if(action==='start'&&req.method==='POST'){startHangman(room,me.id);return send(res,200,{room:publicHangmanRoom(room)});}
   if(action==='guess'&&req.method==='POST'){const result=guessHangmanLetter(room,me.id,(await body(req)).letter);settle();return send(res,200,{result,room:publicHangmanRoom(room)});}
-  if(action==='guess-word'&&req.method==='POST'){const result=guessHangmanWord(room,me.id,(await body(req)).word);settle();return send(res,200,{result,room:publicHangmanRoom(room)});}
   if(action==='buy-letter'&&req.method==='POST'){if(me.gold<HANGMAN_LETTER_COST)return send(res,409,{error:'Harf almak için yeterli altının yok.'});const result=buyHangmanLetter(room,me.id);me.gold-=result.cost;save();settle();return send(res,200,{result,room:publicHangmanRoom(room),user:publicUser(me)});}
   return send(res,404,{error:'Adam Asmaca işlemi bulunamadı.'});
  }

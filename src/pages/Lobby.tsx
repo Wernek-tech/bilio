@@ -103,6 +103,7 @@ export default function Lobby() {
     const STICK_TO_BOTTOM_PX = 120; // ponytail: always jump to bottom on first load; after that, only follow if the reader was already near the bottom.
     const didInitialScroll = useRef(false);
     useEffect(() => {
+        if (items.length === 0) return;
         const scroller = bottom.current?.parentElement;
         const wasNearBottom = !didInitialScroll.current || !scroller || scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < STICK_TO_BOTTOM_PX;
         if (wasNearBottom) { bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' }); didInitialScroll.current = true; }
