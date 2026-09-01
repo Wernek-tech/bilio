@@ -104,7 +104,7 @@ export default function Lobby() {
     useEffect(() => {
         const scroller = bottom.current?.parentElement;
         const wasNearBottom = !scroller || scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < STICK_TO_BOTTOM_PX;
-        if (wasNearBottom) bottom.current?.scrollIntoView({ behavior: 'auto' });
+        if (wasNearBottom) bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     }, [items.length]);
     useEffect(() => { const close = () => setActiveMessage(null); document.addEventListener('click', close); return () => document.removeEventListener('click', close); }, []);
     const send = async (e?: FormEvent) => { e?.preventDefault(); if (!auth.user) {

@@ -451,15 +451,15 @@
         ]
       },
       "stats": {
-        "matches": 9,
+        "matches": 10,
         "wins": 5,
         "correct": 2,
-        "score": 6466
+        "score": 6591
       },
       "weekly": {
-        "score": 6466,
+        "score": 6591,
         "victories": 5,
-        "updatedAt": "2026-09-01T17:47:46.834Z"
+        "updatedAt": "2026-09-01T18:53:56.321Z"
       },
       "registrationRewardGranted": true,
       "friends": [
@@ -3511,7 +3511,7 @@
     "691711d8951e04717fedddef57612b10d781d3f6b15fe0eabda289a99ba6156e": {
       "userId": "8fecf1f3-dc78-4220-bad5-8a0f386cabd4",
       "createdAt": 1788198608138,
-      "lastSeenAt": 1788288400055
+      "lastSeenAt": 1788288820084
     },
     "1a6570de16e1142f2d38e7fb3ff3af85e40adff93ea44f1f2b5f533ebf6e28fc": {
       "userId": "323fa82b-3fea-44b9-93c5-a5fa1756127b",
@@ -3524,7 +3524,7 @@
     "ff1d4d2599f3ce8f3d83e88e44c108d8913cdb901c30fa2eeaca010c8642c892": {
       "userId": "c521bc57-a0f9-46ff-9668-0c5bf1ffc113",
       "createdAt": 1788278787245,
-      "lastSeenAt": 1788288447398
+      "lastSeenAt": 1788288836320
     },
     "6ec756589c5a3bd09f2d8a5ba92bc908a3b8ad3660c82715ba0872ff07452e7a": {
       "userId": "480092f0-f252-414e-bf45-44b83b6af47b",
