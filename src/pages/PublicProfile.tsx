@@ -1,0 +1,17 @@
+import {useEffect,useState} from 'react';
+import {useParams} from 'react-router-dom';
+import SiteShell from '../components/SiteShell';
+import AuthModal from '../auth/AuthModal';
+import {api,useAuth} from '../auth/auth';
+import {titles} from '../data/titles';
+
+type PublicProfileData={userId:string;username:string;level:number;about:string;avatarUrl:string;selectedTitleId:string;selectedFrameId:string|null;likeCount:number;likedByMe:boolean;isFriend:boolean;isSelf:boolean;badges:{id:string;name:string;assetPath:string;requirement:string;equipped:boolean}[];gifts:{id:string;name:string;quantity:number}[]};
+
+export default function PublicProfile(){
+ const {userId}=useParams(),auth=useAuth();
+ const [profile,setProfile]=useState<PublicProfileData|null>(null),[error,setError]=useState(''),[authOpen,setAuthOpen]=useState(false);
+ useEffect(()=>{if(!userId)return;api<{profile:PublicProfileData}>(`/profiles/${encodeURIComponent(userId)}`).then(result=>setProfile(result.profile)).catch(reason=>setError(reason instanceof Error?reason.message:'Profil açılamadı.'))},[userId]);
+ const like=async()=>{if(!profile)return;if(!auth.user){setAuthOpen(true);return}try{const result=await api<{likeCount:number;likedByMe:boolean}>(`/profiles/${encodeURIComponent(profile.userId)}/like`,{method:'POST'});setProfile({...profile,...result})}catch(reason){setError(reason instanceof Error?reason.message:'Beğeni verilemedi.')}};
+ const addFriend=async()=>{if(!profile)return;if(!auth.user){setAuthOpen(true);return}try{await api('/friends/add',{method:'POST',body:JSON.stringify({userId:profile.userId})});setProfile({...profile,isFriend:true})}catch(reason){setError(reason instanceof Error?reason.message:'Arkadaş eklenemedi.')}};
+ return <SiteShell><main className="page-body standalone-public-profile">{error?<div className="leaderboard-empty"><b>Profil açılamadı.</b><small>{error}</small></div>:!profile?<div className="page-loading">Profil yükleniyor…</div>:<section className="public-profile-modal public-profile-card"><header><div className={`public-avatar ${profile.selectedFrameId||''}`}>{profile.avatarUrl?<img src={profile.avatarUrl} alt={`${profile.username} profil resmi`}/>:profile.username.slice(0,1).toLocaleUpperCase('tr-TR')}<i>{profile.level}</i></div><div><h1>{profile.username}</h1><img src={(titles.find(item=>item.id===profile.selectedTitleId)||titles[0]).assetPath} alt="Unvan"/><p>{profile.about||'Henüz hakkında bilgisi eklenmedi.'}</p></div></header><div className="public-profile-actions"><button className={`profile-like${profile.likedByMe?' liked':''}`} disabled={profile.isSelf||profile.likedByMe} onClick={()=>void like()}>♡ <b>{profile.likeCount}</b><span>{profile.likedByMe?'BEĞENDİN':'BEĞEN'}</span></button>{!profile.isSelf&&!profile.isFriend&&<button onClick={()=>void addFriend()}>＋ ARKADAŞ EKLE</button>}{profile.isFriend&&<span className="public-friend-state">ARKADAŞSINIZ</span>}</div><div className="public-profile-sections"><section><h2>ROZET VİTRİNİ</h2><div>{profile.badges.filter(item=>item.equipped).slice(0,5).map(item=><img key={item.id} src={item.assetPath} title={`${item.name} — ${item.requirement}`} alt={item.name}/>)}{!profile.badges.some(item=>item.equipped)&&<small>Vitrinde rozet yok.</small>}</div></section><section><h2>HEDİYELER</h2><div>{profile.gifts.length?profile.gifts.map(item=><span key={item.id}>🎁 {item.name} ×{item.quantity}</span>):<small>Henüz hediye yok.</small>}</div></section></div></section>}</main>{authOpen&&<AuthModal onClose={()=>setAuthOpen(false)}/>}</SiteShell>;
+}
