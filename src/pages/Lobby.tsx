@@ -108,7 +108,7 @@ export default function Lobby() {
         const scroller = bottom.current?.parentElement;
         const wasNearBottom = !didInitialScroll.current || !scroller || scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < STICK_TO_BOTTOM_PX;
         if (wasNearBottom) { bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' }); didInitialScroll.current = true; }
-    }, [items.length]);
+    }, [items.length, items[items.length - 1]?.id]); // ponytail: length alone stops changing once the 40-cap is hit (old-for-new swap) 
     useEffect(() => { const close = () => setActiveMessage(null); document.addEventListener('click', close); return () => document.removeEventListener('click', close); }, []);
     useEffect(() => { const openPrivate = (event: Event) => { const target = event.target as HTMLElement; if (!target.closest('.player-actions-popover small') || !activeMessage) return; const message = items.find(item => item.id === activeMessage); if (message?.userId) { event.stopPropagation(); window.dispatchEvent(new CustomEvent('bilio:message-user', {detail: {userId: message.userId}})); setActiveMessage(null); } }; document.addEventListener('click', openPrivate); return () => document.removeEventListener('click', openPrivate); }, [activeMessage, items]);
     const send = async (e?: FormEvent) => { e?.preventDefault(); if (!auth.user) {
