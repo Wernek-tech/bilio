@@ -100,7 +100,12 @@ export default function Lobby() {
     catch {
         setErr('Lobi bağlantısı yenileniyor…');
     } }; es.onerror = () => setErr('Lobi bağlantısı yenileniyor…'); return () => es.close(); }, [load]);
-    useEffect(() => { bottom.current?.scrollIntoView({ behavior: 'smooth' }); }, [items.length]);
+    const STICK_TO_BOTTOM_PX = 120; // ponytail: only auto-follow if the reader was already near the bottom
+    useEffect(() => {
+        const scroller = bottom.current?.parentElement;
+        const wasNearBottom = !scroller || scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < STICK_TO_BOTTOM_PX;
+        if (wasNearBottom) bottom.current?.scrollIntoView({ behavior: 'auto' });
+    }, [items.length]);
     useEffect(() => { const close = () => setActiveMessage(null); document.addEventListener('click', close); return () => document.removeEventListener('click', close); }, []);
     const send = async (e?: FormEvent) => { e?.preventDefault(); if (!auth.user) {
         setAuthOpen(true);
