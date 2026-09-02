@@ -1,0 +1,1 @@
+import {Link} from 'react-router-dom'; export default function Placeholder({title}:{title:string}){return <main className="placeholder"><h1>{title}</h1><Link to="/">Ana giriş ekranına dön</Link></main>}

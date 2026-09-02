@@ -1,3 +1,0 @@
-[functions.bil-bakalim]
-verify_jwt = true
-entrypoint = "./functions/bil-bakalim/index.ts"
