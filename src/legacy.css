@@ -81,3 +81,26 @@
 .confirm-modal button{min-width:112px;height:42px;border:1px solid var(--border-chocolate);border-radius:8px;background:#130c08;color:var(--text-primary);font-weight:700;cursor:pointer}
 .legacy-modal-back{position:fixed;inset:0;background:#000b;z-index:1000;display:grid;place-items:center;padding:24px}
 @media(max-width:1279px){.product-grid{grid-template-columns:repeat(5,166px)}}
+
+/* Oyunlar (Games home) — ported verbatim from v15 at user's request */
+:root{--game-card-width:260px;--game-card-height:292px;--game-card-gap:18px;--cream:#f5ead7;--border-soft:#4e392a;--content-padding-x:28px;--content-padding-top:26px}
+.games-content{position:relative;min-width:0;padding:var(--content-padding-top) var(--content-padding-x) 24px}
+.games-grid{display:grid;grid-template-columns:repeat(4,minmax(0,var(--game-card-width)));gap:var(--game-card-gap);align-content:start;justify-content:center;padding-top:10px}
+.desktop-game-card{width:100%;max-width:275px;height:var(--game-card-height);max-height:310px;min-width:0;border:1px solid var(--border-soft);border-radius:12px;background:linear-gradient(180deg,#0d0907,#070504);overflow:hidden;display:grid;grid-template-rows:1fr 76px;box-shadow:0 8px 22px #0007;transition:border-color .15s,transform .12s,box-shadow .15s;cursor:pointer}
+.desktop-game-card:hover{border-color:#8a5f3d;transform:translateY(-2px);box-shadow:0 10px 25px #0009,0 0 8px #6f472735}
+.game-art{min-height:0;padding:10px 10px 0}
+.game-art img{width:100%;height:100%;object-fit:cover;object-position:center;border-radius:8px;display:block;filter:saturate(.88) brightness(.9)}
+.game-card-foot{display:flex;align-items:center;gap:10px;padding:10px 13px 12px;min-height:76px}
+.game-card-foot h2{margin:0;flex:1;color:var(--cream);font-size:22px;line-height:1.05;font-weight:800;letter-spacing:.01em;min-height:46px;display:flex;align-items:center;overflow:hidden}
+.launch-button{flex:0 0 38px;width:38px;height:38px;max-width:38px;max-height:38px;border:1px solid #825b38;border-radius:50%;background:#130d09;color:#f0d8b4;font-size:13px;cursor:pointer}
+.launch-button:hover:not(:disabled){background:#1b120c;border-color:#b27b46}
+.launch-button:active:not(:disabled){transform:translateY(1px)}
+.desktop-game-card.disabled{opacity:.58}
+.desktop-game-card.disabled .game-art{filter:grayscale(.45)}
+.launch-button:disabled{cursor:not-allowed;color:#74685b}
+.join-code-modal{position:relative;width:min(440px,calc(100vw - 32px));padding:30px;display:grid;gap:16px;border:1px solid #96643d;border-radius:16px;background:radial-gradient(circle at top,#24140d,#0d0806 68%);box-shadow:0 22px 70px #000,0 0 22px #8d4d2e44}
+.join-code-modal h2{margin:0;color:#f7dfc4;letter-spacing:1px}
+.join-code-modal p{margin:0;color:#b89b82}
+.join-code-modal input{height:54px;padding:0 16px;border:1px solid #8e603d;border-radius:10px;background:#090604;color:#fff;font-size:20px;font-weight:900;letter-spacing:3px;text-transform:uppercase}
+.join-code-modal>.primary-btn{height:50px;border:1px solid #976941;background:#1a110b;color:#f6ead8;border-radius:8px;cursor:pointer}
+@media(max-width:1663px) and (min-width:1280px){.games-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.desktop-game-card{max-width:260px}.game-card-foot h2{font-size:clamp(17px,1.35vw,22px)}}

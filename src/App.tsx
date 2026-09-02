@@ -15,10 +15,11 @@ import { BilBakalim } from '@/components/BilBakalim';
 import { Hangman } from '@/components/Hangman';
 import { Leaderboard } from '@/components/Leaderboard';
 import { Store } from '@/components/Store';
-import { GAMES, formatNumber } from '@/lib/constants';
+import { GamesGrid } from '@/components/GamesGrid';
+import { formatNumber } from '@/lib/constants';
 import type { Profile } from '@/lib/types';
 
-type Page = 'Oyunlar' | 'Lobi' | 'Liderlik Tablosu' | 'Mağaza' | 'Profil' | 'Bil Bakalım' | 'Adam Asmaca';
+export type Page = 'Oyunlar' | 'Lobi' | 'Liderlik Tablosu' | 'Mağaza' | 'Profil' | 'Bil Bakalım' | 'Adam Asmaca';
 
 function App() {
   const { session, profile, loading, refreshProfile } = useAuth();
@@ -38,7 +39,7 @@ function App() {
       <Sidebar page={page} setPage={goToPage} onLogout={async () => { await api('/logout', { method: 'POST' }); await refreshProfile(); }} />
       <main className="main-content">
         <Topbar profile={profile} setPage={goToPage} />
-        {page === 'Oyunlar' && <GamesPage showToast={setToast} onEnterGame={(p) => goToPage(p)} />}
+        {page === 'Oyunlar' && <GamesGrid showToast={setToast} onEnterGame={(p) => goToPage(p)} />}
         {page === 'Bil Bakalım' && (
           <BilBakalim myUserId={profile.id} showToast={setToast} onLeave={() => goToPage('Oyunlar')} onProfileUpdate={refreshProfile} />
         )}
@@ -181,33 +182,6 @@ function Topbar({ profile, setPage }: { profile: Profile; setPage: (p: Page) => 
         </button>
       </div>
     </header>
-  );
-}
-
-// ─── Games Page ─── Bil Bakalım / Adam Asmaca create-or-rejoin a real room; other cards stay inert until their own phase.
-const GAME_ROUTES: Record<string, { page: Page; create: string }> = {
-  'Bil Bakalım': { page: 'Bil Bakalım', create: '/game/bil-bakalim/create' },
-  'Adam Asmaca': { page: 'Adam Asmaca', create: '/game/hangman/create' },
-};
-function GamesPage({ showToast, onEnterGame }: { showToast: (m: string) => void; onEnterGame: (p: Page) => void }) {
-  async function open(gameName: string) {
-    const route = GAME_ROUTES[gameName];
-    if (!route) { showToast('Bu oyun yakında.'); return; }
-    try { await api(route.create, { method: 'POST' }); onEnterGame(route.page); }
-    catch (reason) { showToast(reason instanceof Error ? reason.message : 'Oda oluşturulamadı.'); }
-  }
-  return (
-    <div className="games-page">
-      <div className="games-grid">
-        {GAMES.map((game) => (
-          <article key={game.name} className="game-card" style={{ '--game-color': game.color } as React.CSSProperties} onClick={() => void open(game.name)} role="button" tabIndex={0}>
-            <h3>{game.name}</h3>
-            <p>{game.description}</p>
-            <span>{game.players}</span>
-          </article>
-        ))}
-      </div>
-    </div>
   );
 }
 
