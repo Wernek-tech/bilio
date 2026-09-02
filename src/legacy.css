@@ -1,0 +1,83 @@
+/* ponytail: verbatim styling for Leaderboard/Store, pulled from the live v15 bilio UI at the user's
+   request — these two pages stay in the OLD visual style (not restyled to match Bolt) until someone
+   designs a Bolt version. Trimmed to only the selectors these two pages actually use, and the old
+   `.podium`/`.podium-card`/`.pod-avatar` rules were dropped entirely — they'd collide with Bolt's
+   own `.podium`/`.podium-card` classes used by BilBakalim/Hangman results screens. */
+:root{--page-bg:#050403;--surface-primary:#0d0907;--surface-secondary:#130c08;--surface-hover:#1a100b;--surface-active:#26140b;--border-chocolate:#68402a;--border-strong:#945632;--accent-caramel:#c77942;--text-primary:#fff4e3;--text-secondary:#b8aba0;--text-muted:#776d66;--accent-pink:#f4459b;--success:#67bf6b;--warning:#d6a044;--error:#d85c5c}
+
+.page-body{padding-top:24px}
+.page-loading,.page-empty{display:grid;place-items:center;color:var(--text-secondary);min-height:420px}
+
+/* player-avatar (PlayerAvatar.tsx) */
+.player-avatar{--avatar-size:58px;position:relative;width:var(--avatar-size);height:var(--avatar-size);min-width:var(--avatar-size);display:grid;place-items:center;overflow:visible!important;border-radius:50%}
+.player-avatar-photo{position:relative;z-index:1;width:100%;height:100%;overflow:hidden;border-radius:50%;display:grid;place-items:center;background:#1b100b;border:1px solid #80502f;color:#fff;font-weight:900}
+.player-avatar-photo>img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+.player-avatar-ornament{position:absolute!important;z-index:3!important;inset:50% auto auto 50%!important;transform:translate(-50%,-50%)!important;width:178%!important;height:178%!important;max-width:none!important;object-fit:contain!important;border:0!important;border-radius:0!important;pointer-events:none;filter:drop-shadow(0 0 5px #9fc8ff88)}
+.player-avatar-level{position:absolute;z-index:5;right:-3px;bottom:-3px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border:1px solid #b27445;border-radius:10px;background:#0b0705;color:#f7d6b1;font-size:8px;font-style:normal}
+.player-avatar.frame-donut .player-avatar-photo{outline:5px solid #ff4e9d;box-shadow:inset 0 0 0 2px #ffb454,0 0 10px #ff4e9d99}
+.leaderboard-avatar-v10.player-avatar{--avatar-size:82px}
+.rank-player .mini-avatar.player-avatar{--avatar-size:38px}
+.leaderboard-avatar-v10.player-avatar>img,.mini-avatar.player-avatar>img{position:absolute!important}
+
+/* Leaderboard */
+.leaderboard-page{padding-top:8px}
+.leaderboard-empty-table{margin-top:28px}
+.leaderboard-empty{min-height:300px;display:grid;place-items:center;align-content:center;gap:8px;text-align:center;color:var(--text-secondary)}
+.leaderboard-empty .small-trophy{width:42px;height:42px;border:1px solid var(--border-chocolate);border-radius:50%;display:grid;place-items:center;color:#c99458;font-size:20px;background:#0d0907}
+.leaderboard-empty b{font-size:16px;color:var(--text-primary)}
+.leaderboard-empty small{font-size:13px;color:var(--text-muted)}
+.leaderboard-podium-v10{width:100%;min-height:290px;box-sizing:border-box;display:flex;align-items:flex-end;justify-content:center;gap:26px;padding:26px 24px 20px}
+.leaderboard-card-v10{position:relative;width:280px;height:220px;box-sizing:border-box;flex:0 1 280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid #74513b;border-radius:16px;background:radial-gradient(circle at 50% 5%,#21150e,#0b0705 66%);box-shadow:0 12px 35px #000;color:#fff;overflow:hidden}
+.leaderboard-card-v10.rank-1{width:340px;height:260px;flex-basis:340px;border:2px solid #e0a228;background:radial-gradient(circle at 50% 2%,#3a250d,#100a05 68%);box-shadow:0 0 28px #e0a22866,0 18px 45px #000;z-index:2}
+.leaderboard-card-v10.rank-2{border-color:#8da0b5;box-shadow:0 0 18px #8da0b533,0 14px 38px #000}
+.leaderboard-card-v10.rank-3{border-color:#a46a43;box-shadow:0 0 18px #a46a4333,0 14px 38px #000}
+.leaderboard-rank-v10{position:absolute;top:14px;left:17px;font-size:29px;font-weight:1000;color:#d9ab63}
+.rank-1 .leaderboard-rank-v10{font-size:36px;color:#ffd358}
+.leaderboard-avatar-v10{width:82px;height:82px;flex:0 0 82px;display:grid;place-items:center;overflow:hidden;border:2px solid #815b3b;border-radius:50%;background:#1a100a;font-size:27px;font-weight:900}
+.rank-1 .leaderboard-avatar-v10{width:106px;height:106px;flex-basis:106px;border:3px solid #e0a228;box-shadow:0 0 18px #e0a22855}
+.leaderboard-avatar-v10 img{width:100%;height:100%;display:block;object-fit:cover;border-radius:50%}
+.leaderboard-card-v10>b{max-width:90%;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leaderboard-card-v10.rank-1>b{font-size:21px}
+.leaderboard-card-v10 .title-art{width:126px;height:25px;object-fit:contain}
+.leaderboard-card-v10>strong{color:#e5b866;font-size:17px}
+.leaderboard-card-v10.rank-1>strong{color:#ffd358;font-size:21px}
+.leaderboard-card-v10>small{color:#a89480;font-size:9px}
+.leaderboard-rest-v10{margin-top:4px!important}
+.rank-table{border:1px solid var(--border-chocolate);border-radius:12px;overflow:hidden;background:#0a0705}
+.rank-table>header,.rank-row{display:grid;grid-template-columns:70px minmax(0,1fr) 160px;align-items:center;padding:0 16px}
+.rank-table>header{height:38px;color:#9d8e82;font-size:11px;border-bottom:1px solid #39261a}
+.rank-row{height:52px;border-bottom:1px solid #2e2017;font-size:14px}
+.rank-row:last-child{border-bottom:0}
+.rank-player{display:flex;align-items:center;gap:10px;min-width:0}
+.rank-player b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-player img{max-width:86px;max-height:18px;object-fit:contain}
+.rank-row>strong{text-align:right}
+.rank-row.pinned{background:#181008;border-top:1px solid #8b5b37}
+.no-rank{padding:16px;text-align:center;color:var(--text-secondary);font-size:13px}
+@media(max-width:1250px){.leaderboard-podium-v10{gap:14px}.leaderboard-card-v10{width:240px;flex-basis:240px}.leaderboard-card-v10.rank-1{width:290px;flex-basis:290px}}
+@media(max-width:900px){.leaderboard-podium-v10{flex-direction:column;align-items:center}.leaderboard-card-v10,.leaderboard-card-v10.rank-1{width:min(100%,340px);flex-basis:auto}.leaderboard-card-v10.rank-1{order:-1}}
+
+/* Store */
+.store-page h1{font-size:28px;margin:0 0 18px;font-weight:750}
+.store-cats{display:flex;gap:10px;margin-bottom:18px}
+.store-cats button{height:44px;min-width:150px;max-width:175px;flex:1;border:1px solid var(--border-chocolate);border-radius:8px;background:#0b0806;color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer}
+.store-cats button.active{background:var(--surface-active);border-color:var(--border-strong);box-shadow:0 0 7px #6d3e2355}
+.store-message{height:26px;font-size:12px;color:#d7b186}
+.store-empty{padding:40px;text-align:center;color:var(--text-secondary)}
+.product-grid{display:grid;grid-template-columns:repeat(6,minmax(0,178px));gap:16px 14px;align-content:start}
+.product-card{height:250px;border:1px solid var(--border-chocolate);border-radius:10px;background:#0c0806;display:grid;grid-template-rows:142px 32px 22px 1fr;align-items:center;text-align:center;padding:10px}
+.product-preview{height:132px;display:grid;place-items:center;overflow:hidden}
+.product-preview img{max-width:148px;max-height:112px;object-fit:contain}
+.product-preview span{font-size:78px;line-height:1}
+.product-card>b{font-size:13px}
+.product-card>small{font-size:11px;color:var(--text-muted)}
+.product-action{align-self:end}
+.product-action button{width:100%;height:38px;border:1px solid #7a4e30;border-radius:8px;background:#171009;color:var(--text-primary);font-size:11px;font-weight:700;cursor:pointer}
+.product-action button:disabled{color:#9a8f84;border-color:#42352d;cursor:default}
+.confirm-modal{width:390px;border:1px solid var(--border-chocolate);border-radius:12px;background:#0c0806;padding:24px}
+.confirm-modal h2{font-size:20px;margin-top:0}
+.confirm-modal p{font-size:14px;color:var(--text-secondary);line-height:1.5}
+.confirm-modal>div{display:flex;justify-content:flex-end;gap:10px}
+.confirm-modal button{min-width:112px;height:42px;border:1px solid var(--border-chocolate);border-radius:8px;background:#130c08;color:var(--text-primary);font-weight:700;cursor:pointer}
+.legacy-modal-back{position:fixed;inset:0;background:#000b;z-index:1000;display:grid;place-items:center;padding:24px}
+@media(max-width:1279px){.product-grid{grid-template-columns:repeat(5,166px)}}
