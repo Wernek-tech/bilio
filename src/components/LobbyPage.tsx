@@ -2,12 +2,13 @@
 // REST + SSE (/api/lobby/messages, /api/lobby/events). Private-message/add-friend menu items call
 // real endpoints; "Mesaj Gönder" just toasts for now — the PM window itself lands in a later phase.
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { MessageCircle, Send, Smile, UserPlus } from 'lucide-react';
+import { Gift, MessageCircle, Send, Smile, UserPlus } from 'lucide-react';
 import { api, avatarColorFor, titleNameFor } from '@/lib/bilioApi';
 import { Avatar } from '@/components/Avatar';
 import { EMOJIS, formatTime } from '@/lib/constants';
 import type { Profile } from '@/lib/types';
 
+type DonutPack = { packId: string; totalDiamonds: number; claimedCount: number; maxClaims: number; remainingDiamonds: number; expiresAt: number };
 type LobbyItem = {
   id: string;
   kind: 'message' | 'invite' | 'donut-pack';
@@ -18,6 +19,7 @@ type LobbyItem = {
   avatarUrl?: string;
   content?: string;
   createdAt: string;
+  donutPack?: DonutPack;
 };
 
 export function LobbyPage({ profile, showToast, viewProfile, openPM }: {
@@ -29,25 +31,38 @@ export function LobbyPage({ profile, showToast, viewProfile, openPM }: {
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [donutQuantity, setDonutQuantity] = useState(0);
+  const [sharingDonut, setSharingDonut] = useState(false);
 
   const load = useCallback(async () => {
     try {
       const { items: msgs } = await api<{ items: LobbyItem[] }>('/lobby/messages?limit=40');
-      setItems(msgs.filter((m) => m.kind === 'message'));
+      setItems(msgs.filter((m) => m.kind === 'message' || m.kind === 'donut-pack'));
     } catch {
       showToast('Lobi mesajları yüklenemedi.');
     }
   }, [showToast]);
 
-  useEffect(() => { void load(); }, [load]);
+  const loadDonutQuantity = useCallback(async () => {
+    try {
+      const { items: products } = await api<{ items: { id: string; quantity?: number }[] }>('/store/products?category=HEDİYELER');
+      setDonutQuantity(products.find((p) => p.id === 'gift-donut-pack')?.quantity || 0);
+    } catch { setDonutQuantity(0); }
+  }, []);
+
+  useEffect(() => { void load(); void loadDonutQuantity(); }, [load, loadDonutQuantity]);
 
   useEffect(() => {
     const es = new EventSource('/api/lobby/events');
     es.onmessage = (e) => {
       try {
         const d = JSON.parse(e.data);
-        if (d.type === 'lobby-item' && d.item?.kind === 'message') {
-          setItems((v) => (v.some((x) => x.id === d.item.id) ? v : [...v, d.item].slice(-40)));
+        if (d.type === 'lobby-item' && (d.item?.kind === 'message' || d.item?.kind === 'donut-pack')) {
+          setItems((v) => {
+            const found = v.findIndex((x) => x.id === d.item.id);
+            if (found < 0) return [...v, d.item].slice(-40);
+            const next = [...v]; next[found] = d.item; return next; // donut-pack claim-count updates land as an update to the same id
+          });
         }
       } catch { /* ignore malformed frames */ }
     };
@@ -89,6 +104,23 @@ export function LobbyPage({ profile, showToast, viewProfile, openPM }: {
     setMenuFor(null);
   }
 
+  async function shareDonut() {
+    if (sharingDonut || donutQuantity <= 0) return;
+    setSharingDonut(true);
+    try {
+      await api('/lobby/donut-packs/share', { method: 'POST' });
+      setDonutQuantity((v) => Math.max(0, v - 1));
+    } catch (reason) { showToast(reason instanceof Error ? reason.message : 'Donut paketi paylaşılamadı.'); }
+    finally { setSharingDonut(false); }
+  }
+
+  async function claimDonut(packId: string) {
+    try {
+      const result = await api<{ amount: number }>('/lobby/donut-packs/claim', { method: 'POST', body: JSON.stringify({ packId }) });
+      showToast(`${result.amount.toLocaleString('tr-TR')} elmas kazandın!`);
+    } catch (reason) { showToast(reason instanceof Error ? reason.message : 'Donut paketi açılamadı.'); }
+  }
+
   return (
     <div className="lobby-layout lobby-chat-only">
       <section className="chat-card">
@@ -102,6 +134,22 @@ export function LobbyPage({ profile, showToast, viewProfile, openPM }: {
           ) : (
             items.map((msg) => {
               const senderProfile = { username: msg.username, avatar_color: avatarColorFor(msg.username), avatar_url: msg.avatarUrl || null } as Profile;
+              if (msg.kind === 'donut-pack' && msg.donutPack) {
+                const pct = Math.round((msg.donutPack.claimedCount / msg.donutPack.maxClaims) * 100);
+                const full = msg.donutPack.claimedCount >= msg.donutPack.maxClaims;
+                return (
+                  <div className="chat-message" key={msg.id} style={{ background: 'linear-gradient(90deg,#2a1030,#1a0b1f)', borderRadius: 10, padding: 10 }}>
+                    <Avatar profile={senderProfile} size={30} showFrame={false} />
+                    <div className="chat-msg-body" style={{ flex: 1 }}>
+                      <strong>{msg.username} bir Paylaşımlı Donut Paketi açtı! 🎁</strong>
+                      <p style={{ margin: '4px 0' }}>20 farklı oyuncuya toplam 5.000 elmas dağıtılır.</p>
+                      <small>{msg.donutPack.claimedCount}/{msg.donutPack.maxClaims} kişi açtı · {msg.donutPack.remainingDiamonds.toLocaleString('tr-TR')} elmas kaldı</small>
+                      <div style={{ height: 5, borderRadius: 3, background: '#3a2040', marginTop: 6, overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: '#f4459b' }} /></div>
+                    </div>
+                    <button className="soft-button" disabled={full} onClick={() => void claimDonut(msg.donutPack!.packId)}>{full ? 'BİTTİ' : 'PAKETİ AÇ'}</button>
+                  </div>
+                );
+              }
               return (
                 <div className="chat-message" key={msg.id}>
                   <div onClick={(e) => { e.stopPropagation(); if (msg.userId) setMenuFor(menuFor === msg.id ? null : msg.id); }}>
@@ -137,6 +185,7 @@ export function LobbyPage({ profile, showToast, viewProfile, openPM }: {
             </div>
           )}
           <button type="button" className="emoji-toggle" onClick={() => setShowEmoji(!showEmoji)}><Smile size={20} /></button>
+          {donutQuantity > 0 && <button type="button" className="soft-button" disabled={sharingDonut} onClick={() => void shareDonut()}><Gift size={16} /> PAKET PAYLAŞ ×{donutQuantity}</button>}
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Lobiye bir mesaj bırak..." maxLength={400} />
           <button type="submit" className="send-donut" aria-label="Gönder"><Send size={17} /></button>
         </form>

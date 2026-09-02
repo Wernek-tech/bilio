@@ -15,7 +15,7 @@ type BilioProfile = {
   userId?: string; username: string; about: string; avatarUrl: string; level: number; xp: number; nextLevelXp: number;
   selectedTitleId: string; selectedFrameId: string | null; createdAt: string;
   stats: { matches: number; wins: number; correct: number; score: number };
-  badges: BadgeItem[]; ownedTitleIds: string[];
+  badges: BadgeItem[]; ownedTitleIds: string[]; ownedFrames: { id: string; name: string; assetPath: string }[];
   likeCount?: number; likedByMe?: boolean; isFriend?: boolean; isSelf?: boolean;
 };
 const ALL_TITLES = Array.from({ length: 26 }, (_, i) => ({ id: `title-${i + 1}`, name: titleNameFor(`title-${i + 1}`), unlockLevel: i === 0 ? 1 : i * 20 }));
@@ -41,6 +41,7 @@ export function ProfilePage({ session, showToast, openPM, viewProfileId, onOwnPr
   const [about, setAbout] = useState('');
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [showTitleModal, setShowTitleModal] = useState(false);
+  const [showFrameModal, setShowFrameModal] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,6 +92,13 @@ export function ProfilePage({ session, showToast, openPM, viewProfileId, onOwnPr
       await api('/profile', { method: 'PUT', body: JSON.stringify({ titleId }) });
       showToast('Unvan güncellendi.'); setShowTitleModal(false); load(); onOwnProfileUpdate();
     } catch (reason) { showToast(reason instanceof Error ? reason.message : 'Unvan seçilemedi.'); }
+  }
+
+  async function selectFrame(frameId: string | null) {
+    try {
+      await api('/profile', { method: 'PUT', body: JSON.stringify({ frameId }) });
+      showToast('Çerçeve güncellendi.'); setShowFrameModal(false); load(); onOwnProfileUpdate();
+    } catch (reason) { showToast(reason instanceof Error ? reason.message : 'Çerçeve seçilemedi.'); }
   }
 
   async function toggleShowcaseBadge(badgeId: string) {
@@ -189,7 +197,7 @@ export function ProfilePage({ session, showToast, openPM, viewProfileId, onOwnPr
       <div className="profile-section">
         <div className="profile-section-header">
           <h4>Başarımlar</h4>
-          {isOwnProfile && <button className="soft-button" onClick={() => setShowTitleModal(true)}>Unvan Seç</button>}
+          {isOwnProfile && <div style={{ display: 'flex', gap: 8 }}><button className="soft-button" onClick={() => setShowTitleModal(true)}>Unvan Seç</button><button className="soft-button" onClick={() => setShowFrameModal(true)}>Çerçeve Seç</button></div>}
         </div>
         <div className="achievements-grid">
           {data.badges.slice(0, 12).map((b) => (
@@ -243,6 +251,23 @@ export function ProfilePage({ session, showToast, openPM, viewProfileId, onOwnPr
                   <small>{t.name}</small>
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {showFrameModal && (
+        <div className="modal-overlay" onClick={() => setShowFrameModal(false)}>
+          <div className="badge-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header"><h3>Çerçeve Seç</h3><button onClick={() => setShowFrameModal(false)}><X size={20} /></button></div>
+            <div className="badge-grid">
+              <button className={`badge-pick ${!data.selectedFrameId ? 'selected' : ''}`} onClick={() => void selectFrame(null)}><small>Çerçevesiz</small></button>
+              {data.ownedFrames.map((f) => (
+                <button key={f.id} className={`badge-pick ${data.selectedFrameId === f.id ? 'selected' : ''}`} onClick={() => void selectFrame(f.id)}>
+                  <div className="badge-img"><img src={f.assetPath} alt={f.name} /></div>
+                  <small>{f.name}</small>
+                </button>
+              ))}
+              {data.ownedFrames.length === 0 && <p className="muted">Henüz bir çerçeven yok. Mağazadan edinebilirsin.</p>}
             </div>
           </div>
         </div>
