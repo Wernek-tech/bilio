@@ -1,8 +1,16 @@
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { fileURLToPath, URL } from 'node:url';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  resolve: {preserveSymlinks: true},
-  server: {proxy: {'/api': 'http://localhost:8787'}},
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  optimizeDeps: {
+    exclude: ['lucide-react'],
+  },
 });
