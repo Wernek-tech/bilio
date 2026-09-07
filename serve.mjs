@@ -26,8 +26,18 @@ http.createServer(async (req, res) => {
     if (!file.startsWith(DIST)) throw 0;
     let s = await stat(file).catch(() => null);
     if (!s || !s.isFile()) { file = path.join(DIST, 'index.html'); s = await stat(file); } // SPA fallback
-    res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
-    res.end(await readFile(file));
+    const buf = await readFile(file);
+    // ponytail: index.html (and the SPA fallback) must always revalidate — without this, browsers
+    // heuristically cache it and keep serving old <script>/<link> hashes forever after a deploy,
+    // so "the fix isn't showing up" even though the new build is live. Hashed assets under /assets/
+    // are safe to cache hard since Vite gives each build's files a new filename.
+    const isHtml = path.extname(file) === '.html';
+    res.writeHead(200, {
+      'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream',
+      'Content-Length': buf.length,
+      'Cache-Control': isHtml ? 'no-cache' : 'public, max-age=31536000, immutable',
+    });
+    res.end(buf);
   } catch {
     res.writeHead(404); res.end('Not found');
   }
